@@ -2,6 +2,7 @@
   <head>
     <title>INFO 4310 - Final Project</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://github.com/1wheel/graph-scroll/blob/gh-pages/graph-scroll.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
@@ -24,7 +25,29 @@
 
         #map { 
             height: 80%;
-            width: 100%; 
+            /* width: 100%;  */
+            width: 50%;
+        }
+        
+        #wrapper{
+          height: 800px;
+          display: flex;
+          flex-direction: row;
+          position: sticky;
+          top: 0px;
+        }
+
+       
+        .gridlines .domain {
+          display: none;
+        }
+        
+        .gridlines line {
+          stroke: #444;
+        }
+
+        .scrolled {
+          fill: black;
         }
 
     </style>
@@ -32,7 +55,11 @@
 
   <body>
     <main>
+      <div id="wrapper">
         <div id="map"></div>
+        <svg id="barchart" height="600" width="700" style="margin-top:0px" >
+        </svg>
+      </div>
     </main>
   </body>
 
@@ -47,6 +74,122 @@
     CartoDB_Positron.addTo(map);
 
     const requestData = async function() {
+      // const hurricane_frequency = await d3.csv("hurricane_frequency.csv", d3.autoType);
+      const hurricane_frequency = await d3.csv("hf_decade_avg.csv", d3.autoType);
+
+      console.log(hurricane_frequency)
+      const bar_svg = d3.select("svg#barchart");
+      const b_width = bar_svg.attr("width");
+      const b_height = bar_svg.attr("height");
+      const margin = {top: 10, right: 10, bottom: 50, left: 50};
+      const b_chartWidth = b_width - margin.left - margin.right;
+      const b_chartHeight = b_height - margin.top - margin.bottom;
+      let annotations = bar_svg.append("g").attr("id","annotations");
+      let chartArea = bar_svg.append("g").attr("id","bars")
+                    .attr("transform",`translate(${margin.left},${margin.top})`);
+
+      let freqExtent = d3.extent(hurricane_frequency, d=>(d['Tropical Storms']+d['Hurricanes']+d['Major Hurricanes']))
+      let freqScale = d3.scaleLinear().domain([0,freqExtent[1]]).range([b_chartHeight, 0]);
+      let leftAxis = d3.axisLeft(freqScale);
+      let leftGridlines = d3.axisLeft(freqScale)
+                            .tickSize(-b_chartWidth-10)
+                            .tickFormat("")
+      annotations.append("g")
+                .attr("class", "y axis")
+                .attr("transform",`translate(${margin.left-10},${margin.top})`)
+                .call(leftAxis)
+      annotations.append("g")
+                .attr("class", "y gridlines")
+                .attr("transform",`translate(${margin.left-10},${margin.top})`)
+                .call(leftGridlines);
+
+      const years = d3.map(hurricane_frequency, d => d.Year) 
+      let yearScale = d3.scaleBand().domain(years).range([0, b_chartWidth]).padding(0.05);
+      let bottomAxis = d3.axisBottom(yearScale).tickFormat(d3.format('.0f'));
+
+      annotations.append("g")
+                .attr("class", "x axis")
+                .attr("transform",`translate(${margin.left},${b_chartHeight+margin.top+10})`)
+                .call(bottomAxis)
+                .selectAll("text")
+                .attr("y", 12)
+                .attr("x", -10)
+                .attr("transform", "rotate(-45)")
+                .style("text-anchor", "end");
+
+      let subgroups = hurricane_frequency.columns.slice(1);
+      let colorScale = d3.scaleOrdinal()
+                          .domain(subgroups)
+                          .range(['#e41a1c','#377eb8','#4daf4a'])
+
+      let stackedData = d3.stack()
+                          .keys(subgroups)(hurricane_frequency);
+      console.log(stackedData)
+      chartArea.append("g")
+          .selectAll("g")
+          .attr("transform",`translate(${margin.left},${b_chartHeight+margin.top+10})`)
+          // Enter in the stack data = loop key per key = group per group
+          .data(stackedData)
+          .enter().append("g")
+            .attr("fill", function(d) { return colorScale(d.key); })
+            .selectAll(`rect`)
+            // enter a second time = loop subgroup per subgroup to add all rectangles
+            .data(function(d) { return d; })
+            .enter().append("rect")
+              .attr("x", function(d) { return yearScale(d.data.Year); })
+              .attr("y", function(d) { return freqScale(d[1]); })
+              .attr("height", function(d) { return freqScale(d[0]) - freqScale(d[1]); })
+              .attr("width", yearScale.bandwidth())
+              .attr("id", d=>`year${d.data.Year}`)
+
+      
+
+      let lastScrollPosition = 0;
+
+      window.onload = function() {
+        window.scrollTo(0, 0); // Scrolls to 500 pixels from the top
+      };
+
+      window.addEventListener('scroll', function() {
+        var scrolled = window.scrollY;
+        console.log(scrolled)
+
+        if (scrolled > lastScrollPosition) { //scrolled down
+          bar_number = Math.floor((scrolled-100)/10);
+          for(i=0; i<=bar_number; i++){
+            let current_year = years[i]
+            let current_bars = chartArea.selectAll(`#year${current_year}`)
+            current_bars.attr('class', 'scrolled')
+          }
+        } else if (scrolled < lastScrollPosition){ //scrolled up
+            bar_number = Math.floor((scrolled-100)/10);
+            console.log(years.length)
+            for(i=years.length; i>bar_number; i--){
+              let current_year = years[i]
+              let current_bars = chartArea.selectAll(`#year${current_year}`)
+              current_bars.attr('class', '')
+            }
+        }
+
+        var content = d3.select('main');
+        if (scrolled === 0) {
+          content.style('height', content.node().offsetHeight + 2 + 'px');
+          window.scrollBy(0, 1); // Scroll down slightly to prevent immediate recall
+        } else if (scrolled + window.innerHeight >= content.node().offsetHeight) {
+          content.style('height', content.node().offsetHeight + 2 + 'px');
+          // window.scrollTo({
+          //   top: 0,
+          //   behavior: 'smooth'
+          // });
+        }
+
+        lastScrollPosition = scrolled;
+      
+      });
+      
+    
+
+      
         
     }
 
