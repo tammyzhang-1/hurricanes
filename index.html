@@ -191,8 +191,8 @@
         decade = 0;
       }
 
-      if (decade > 16) {
-        decade = 16;
+      if (decade > 17) {
+        decade = 17;
       }
 
     if (geojsonLayer) {
@@ -209,6 +209,8 @@
     // var colorScale = d3.scaleLinear()
     //   .domain(extent)
     //   .range(["#0006b5", "#ff3617"]);
+
+    console.log(geoData.features[0].properties.ssta)
 
     var colorScale = d3.scaleSequential().interpolator(d3.interpolateRdBu).domain(extent.reverse())
 
@@ -384,7 +386,7 @@
 
         bar_number = Math.floor((scrolled-300)/10);
 
-        if (0 < bar_number < 18) {
+        if (0 < bar_number < 17) {
           refreshMap(bar_number)
         } 
         
@@ -392,8 +394,8 @@
           refreshMap(0);
         } 
         
-        if (bar_number > 16) {
-          refreshMap(16);
+        if (bar_number > 17) {
+          refreshMap(17);
         }
     
         
