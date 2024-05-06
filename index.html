@@ -24,6 +24,10 @@
           font-family: 'Lato', sans-serif;
         }
 
+        p {
+          line-height: 1.75;
+        }
+
         #map { 
             height: 80%;
             /* width: 100%;  */
@@ -40,6 +44,7 @@
           height: 700px;
           display: flex;
           flex-direction: row;
+          padding-top: 1em;
           
         }
 
@@ -137,7 +142,7 @@
 
   <script>
     // Leaflet setup
-    var map = L.map('map', { zoomControl: false, scrollWheelZoom: false, dragging: false, zoomSnap: 0.5 }).setView([20, -60], 3.5);
+    var map = L.map('map', { zoomControl: false, scrollWheelZoom: false, dragging: false, zoomSnap: 0.2 }).setView([20, -58], 3.6);
 
     var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -146,7 +151,88 @@
     });
     CartoDB_Positron.addTo(map);
 
-    console.log(map.getBounds())
+    // fetch('ssta.geojson')
+    //         .then(response => response.json())
+    //         .then(data => {
+    //           var sstaValues = data.features.map(function(feature) {
+    //               return feature.properties.ssta;
+    //           });
+    //           var extent = d3.extent(sstaValues);
+
+    //           var colorScale = d3.scaleLinear()
+    //             .domain(extent)
+    //             .range(["#0006b5", "#ff3617"]);
+
+    //           function getColor(propertyValue) {
+    //             if (propertyValue == "") {
+    //               return 'transparent';
+    //             } else {
+    //               return colorScale(propertyValue);
+    //             }
+    //           }
+
+    //           L.geoJSON(data, {
+    //                 pointToLayer: function (feature, latlng) {
+    //                     return L.circleMarker(latlng, {
+    //                         fillColor: getColor(feature.properties.ssta), 
+    //                         weight: 0,
+    //                         radius: 2,
+    //                         fillOpacity: 0.3
+    //                     });
+    //                 }
+    //             }).addTo(map);
+    //         });
+
+    let geojsonLayer;
+    const refreshMap = async function (decade) {
+      const geoData = await d3.json('ssta_aggregate.geojson');
+
+      if (decade < 0) {
+        decade = 0;
+      }
+
+      if (decade > 16) {
+        decade = 16;
+      }
+
+    if (geojsonLayer) {
+      map.removeLayer(geojsonLayer);
+    }
+
+    // var sstaValues = geoData.features.map(function(feature) {
+    //     return feature.properties.ssta[decade];
+    // });
+
+    const sstaValues = geoData.features.flatMap(feature => feature.properties.ssta);
+    var extent = d3.extent(sstaValues);
+
+    // var colorScale = d3.scaleLinear()
+    //   .domain(extent)
+    //   .range(["#0006b5", "#ff3617"]);
+
+    var colorScale = d3.scaleSequential().interpolator(d3.interpolateRdBu).domain(extent.reverse())
+
+    function getColor(propertyValue) {
+      if (!propertyValue) {
+        return 'transparent';
+      } else {
+        return colorScale(propertyValue);
+      }
+    }
+
+    geojsonLayer = L.geoJSON(geoData, {
+          pointToLayer: function (feature, latlng) {
+              return L.circleMarker(latlng, {
+                  fillColor: getColor(feature.properties.ssta[decade]), 
+                  weight: 0,
+                  radius: 4,
+                  fillOpacity: 1
+              });
+          }
+      }).addTo(map);
+    }
+
+    refreshMap(0);
 
     const requestData = async function() {
       const hurricane_frequency = await d3.csv("hf_decade_avg.csv", d3.autoType);
@@ -297,8 +383,23 @@
         // console.log(scrolled)
 
         bar_number = Math.floor((scrolled-300)/10);
+
+        if (0 < bar_number < 18) {
+          refreshMap(bar_number)
+        } 
+        
+        if (bar_number < 0) {
+          refreshMap(0);
+        } 
+        
+        if (bar_number > 16) {
+          refreshMap(16);
+        }
+    
+        
         d3.selectAll(`rect`).attr('class', '')
         let current_year = years[bar_number]
+
         let current_bars = chartArea.selectAll(`#year${current_year}`)
         current_bars.attr('class', 'scrolled')
         if(bar_number in textpopups){
