@@ -29,9 +29,9 @@
         }
 
         #map { 
-            height: 80%;
-            /* width: 100%;  */
-            width: 50%;
+            height: 50%;
+            width: 100%; 
+            /* width: 50%; */
         }
 
         #sticky-wrapper{
@@ -39,13 +39,30 @@
           top: 0px;
           padding-top: 2em;
         }
-        
-        #flex-wrapper{
-          height: 700px;
+
+        #part1-main{
           display: flex;
           flex-direction: row;
+        }
+        
+        #part1-left{
+          height: 1000px;
+          display: flex;
+          /* flex-direction: row; */
+          flex-direction: column;
           padding-top: 1em;
-          
+          width: 50%;
+        }
+
+        #part1-right{
+          width: 50%;
+          text-align: center;
+
+        }
+
+        #barchart_div{
+          /* width: 50%; */
+          text-align: center;
         }
 
         h1{
@@ -61,11 +78,13 @@
 
         #part2{
           position: relative;
-          margin-top:200px;
+          margin-top:2000px;
           background-color: white;
           z-index: 2;
-          width: 100%;
+          width: 50%;
+          margin-left:50%;
           padding-top: 10px;
+          
         }
 
         #part2-main{
@@ -92,6 +111,7 @@
 
         .hideAnnotation{
           display: none;
+          /* max-height: 0px; */
         }
     </style>
   </head>
@@ -106,16 +126,23 @@
       </div>
       <div id="sticky-wrapper">
         <h2 class="part1">Rising Ocean Temperatures Increase Tropical Cyclone Frequency and Intensity</h2>
-        <div id="flex-wrapper">
-          <div id="map"></div>
-          <svg id="barchart" height="600" width="650" style="margin-top:0px" >
-          </svg>
-        </div> <!--close wrapper (flexbox)-->
+        <div id="part1-main">
+          <div id="part1-left">
+            <div id="map"></div>
+            <div id="barchart_div">
+              <svg id="barchart" height="500" width="750" style="margin-top:0px" >
+              </svg>
+            </div>
+          </div> <!--close part1-left (flexbox columns)-->
+          <div id="part1-right">
+            <h2 id="annotation-title"></h2>
+            <p id="annotation-text"></p>
+          </div>
+        </div> <!--close part1-main (flexbox rows)-->
       </div> <!--close wrapper (sticky)-->
       <div id="part2">
         <div id="part2-text">
           <h2>La Ni&#241a Season Approaches...</h2>
-          <!-- <h3>Not only are there warmer ocean temperatures, but the seasonal La Ni&#241a is coming, which makes hurricanes more prevalent and more intense.</h3> -->
           <p style="font-style: italic;">
             "NOAA's most recent forecasts predict 80% chance of La Nina conditions during this year's hurricane season + in combination with record-breaking ocean temps, this hurricane season is highly likely to be unprecedented."
           </p>
@@ -127,9 +154,7 @@
           </p>
         </div>
         <div id="part2-main">
-          <!-- <div class="part2_child">Words here</div> -->
           <svg id="linechart" height="300" width="800" style="margin-top:0px" ></svg>
-          <!-- <div id="part2_child">Words here</div> -->
         </div>
         <div id="part2-text">
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus a lacus feugiat, laoreet ipsum pharetra, vulputate ligula. Donec dapibus posuere dolor, non pellentesque sem efficitur gravida. In neque urna, mattis non accumsan vitae, euismod eget dolor. Duis bibendum purus sed sodales tristique. Suspendisse faucibus nibh orci, sed rhoncus turpis bibendum ac. Etiam sit amet volutpat neque. Sed auctor luctus tortor. Fusce at posuere est, quis sagittis est. Fusce in ullamcorper nisl. Interdum et malesuada fames ac ante ipsum primis in faucibus.
@@ -210,7 +235,7 @@
     //   .domain(extent)
     //   .range(["#0006b5", "#ff3617"]);
 
-    console.log(geoData.features[0].properties.ssta)
+    // console.log(geoData.features[0].properties.ssta)
 
     var colorScale = d3.scaleSequential().interpolator(d3.interpolateRdBu).domain(extent.reverse())
 
@@ -244,7 +269,7 @@
       const bar_svg = d3.select("svg#barchart");
       const b_width = bar_svg.attr("width");
       const b_height = bar_svg.attr("height");
-      const margin = {top: 10, right: 10, bottom: 50, left: 50};
+      const margin = {top: 30, right: 150, bottom: 50, left: 50};
       const b_chartWidth = b_width - margin.left - margin.right;
       const b_chartHeight = b_height - margin.top - margin.bottom;
       let annotations = bar_svg.append("g").attr("id","annotations");
@@ -299,16 +324,69 @@
             // enter a second time = loop subgroup per subgroup to add all rectangles
             .data(function(d) { return d; })
             .enter().append("rect")
-              .attr("x", function(d) { return yearScale(d.data.Year); })
-              .attr("y", function(d) { return freqScale(d[1]); })
-              .attr("height", function(d) { return freqScale(d[0]) - freqScale(d[1]); })
+              .attr("x", d => { return yearScale(d.data.Year); })
+              .attr("y", d=> { return freqScale(d[1]); })
+              .attr("height", d=> { return freqScale(d[0]) - freqScale(d[1]); })
               .attr("width", yearScale.bandwidth())
               .attr("id", d=>`year${d.data.Year}`)
 
+      //add titl
+      annotations.append('text')
+                .text('Frequency of Hurricanes by Decade')
+                .attr('x',  (b_chartWidth-margin.right)/2)
+                .attr('y', margin.top)
+                .style("font-size", "15px")
+                .style('font-weight', 'bold')
+                // .style("text-anchor", "middle");
+      //add legend
+      annotations.append('rect')
+                .attr('x', b_chartWidth+margin.right*(2/3)-25)
+                .attr('y', b_chartHeight/3-20)
+                .attr('width', 20)
+                .attr('height', 20)
+                .attr('stroke', colorScale('Tropical Storms'))
+                .attr('fill', colorScale('Tropical Storms'));
+      annotations.append('text')
+                .text('Tropical Storms')
+                .attr('x',  b_chartWidth+margin.right*(2/3))
+                .attr('y', b_chartHeight/3)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');
+      annotations.append('rect')
+                .attr('x', b_chartWidth+margin.right*(2/3)-25)
+                .attr('y', b_chartHeight/3-20+30)
+                .attr('width', 20)
+                .attr('height', 20)
+                .attr('stroke', colorScale('Hurricanes'))
+                .attr('fill', colorScale('Hurricanes'));
+      annotations.append('text')
+                .text('Hurricanes')
+                .attr('x',  b_chartWidth+margin.right*(2/3))
+                .attr('y', b_chartHeight/3+30)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');
+      annotations.append('rect')
+                .attr('x', b_chartWidth+margin.right*(2/3)-25)
+                .attr('y', b_chartHeight/3-20+60)
+                .attr('width', 20)
+                .attr('height', 20)
+                .attr('stroke', colorScale('Major Hurricanes'))
+                .attr('fill', colorScale('Major Hurricanes'));
+      annotations.append('text')
+                .text('Major Hurricanes')
+                .attr('x',  b_chartWidth+margin.right*(2/3))
+                .attr('y', b_chartHeight/3+60)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');
+
+
       //list of all my annotations i want to display
-      let textpopups = {1:['Template callout'], 
-        6:['The 1910s saw a decrease in hurricane frequency,', "though 4 of the top 15 most deadly", 'Mainland U.S tropical cyclones are from this decade.'], 
-        13:['After the 1980s, the increase in average ocean', 'temperatures has consistently been above' ,'the century average.']}
+      // let textpopups = {1:['Template callout'], 
+      //   6:['The 1910s saw a decrease in hurricane frequency,', "though 4 of the top 15 most deadly", 'Mainland U.S tropical cyclones are from this decade.'], 
+      //   13:['After the 1980s, the increase in average ocean', 'temperatures has consistently been above' ,'the century average.']}
+      let textpopups = {1:['Title1', 'Template callout'], 
+        6:['Title2', 'The 1910s saw a decrease in hurricane frequency, though 4 of the top 15 most deadly Mainland U.S tropical cyclones are from this decade.'], 
+        13:['Title3', 'After the 1980s, the increase in average ocean temperatures has consistently been above the century average.']}
 
       //mapping of year to "bar-number" bc im stupid. 
       // like i have the barchart IDs as year1850 but the scroll works based on bar-number so. this is my solution
@@ -320,71 +398,29 @@
         i=i+1;
         yearCounter = yearCounter+10;
       }
-
-      let boxStartx = margin.left+30;
-      let boxStarty = margin.top+30;
-      let annotation_height = 100;
-      let annotation_width = 400;
-
-      //g tag to hold rect and text
-      let textAnnotationG = chartArea.append('g').attr('id', 'text-annotation-g').attr('class', 'hideAnnotation')
-
-      textAnnotationG.append("rect")
-                .attr("id", "text-annotation-rect")
-                .attr('x', boxStartx)
-                .attr('y', boxStarty)
-                .attr('height', annotation_height)
-                .attr('width', annotation_width)
-                .attr('stroke-width', "2px")
-                .attr('stroke', 'black')
-                .attr('fill', 'white');
-
-      // textAnnotationG.append('text')
-      //               .attr('id', 'text-annotation-text')
-      //               .attr("x", boxStartx + annotation_width/2)          
-      //               .attr("y", boxStarty + annotation_height/2)
-      //               .attr("dy", ".35em")           
-      //               .attr("text-anchor", "middle") 
-      //               .text("");  
                     
       // Bar chart highlights based on scroll
       let lastScrollPosition = 0;
 
       window.onload = function() {
-        window.scrollTo(0, 200); 
+        window.scrollTo(0, 5000); //automatically make the page really long, this helps with smoother scrolling
+        window.scrollTo(0, 200); //bring user back to the top
       };
 
       //create a function to update the annotation box of the bar chart
       function annotationUpdate(barNumber, annotationText){
-        //clear existing text
-        textAnnotationG.selectAll('text').remove()
-        // add each line of text 
-        for(i=0; i<(annotationText.length); i++){
-          textAnnotationG.append('text')
-                    .attr('id', 'text-annotation-text')
-                    .attr("x", boxStartx + annotation_width/2)          
-                    .attr("y", boxStarty + annotation_height/3)
-                    // .attr("dy", ".35em")           
-                    .attr("text-anchor", "middle") 
-                    .text(annotationText[i]).attr('dy', `${i}em`)
-        }
-        textAnnotationG.attr('class', '')
-        //add the line from the box to the appropriate bar
-        textAnnotationG.selectAll('line').remove();
-        textAnnotationG.append('line').attr('class', 'annotation-line')
-                        .attr('x1', boxStartx + annotation_width/2)
-                        .attr('y1', boxStarty + annotation_height)
-                        .attr('x2', yearScale(parseInt(yearBarMapping[bar_number].substring(4))) + yearScale.bandwidth()/2)
-                        .attr('y2', d3.select(`#${yearBarMapping[bar_number]}`).attr('y'))
-                        .style("stroke", "black");
-
+        console.log('in here', annotationText)
+        d3.select('#annotation-title').text(annotationText[0]).attr("class", "");
+        d3.select('#annotation-text').text(annotationText[1]).attr("class", "");
       }
 
       window.addEventListener('scroll', function() {
         var scrolled = window.scrollY;
         // console.log(scrolled)
 
-        bar_number = Math.floor((scrolled-300)/10);
+        //can adjust this
+        bar_number = Math.floor((scrolled-250)/100);
+
 
         if (0 < bar_number < 17) {
           refreshMap(bar_number)
@@ -404,22 +440,24 @@
 
         let current_bars = chartArea.selectAll(`#year${current_year}`)
         current_bars.attr('class', 'scrolled')
+
         if(bar_number in textpopups){
           annotationUpdate(bar_number, textpopups[bar_number])
         }
         else{
-          textAnnotationG.attr('class', 'hideAnnotation')
+          d3.select('#annotation-title').attr("class", "hideAnnotation");
+          d3.select('#annotation-text').attr("class", "hideAnnotation");
         }
 
-        //dynamically add more pixels to the page
-        var content = d3.select('main');
-        if (scrolled === 0) {
-          content.style('height', content.node().offsetHeight + 2 + 'px');
-          window.scrollBy(0, 1); // Scroll down slightly to prevent immediate recall
-        } else if (scrolled + window.innerHeight >= content.node().offsetHeight) {
-          content.style('height', content.node().offsetHeight + 2 + 'px'); 
-        }
-        lastScrollPosition = scrolled;
+        //dynamically add more pixels to the page -- DON'T REALLY NEED THIS IF YOU HAVE window.scrollTo(0, BIG NUMBER) ON LOAD!
+        // var content = d3.select('main');
+        // if (scrolled === 0) {
+        //   content.style('height', content.node().offsetHeight + 2 + 'px');
+        //   window.scrollBy(0, 1); // Scroll down slightly to prevent immediate recall
+        // } else if (scrolled + window.innerHeight >= content.node().offsetHeight) {
+        //   content.style('height', content.node().offsetHeight + 2 + 'px'); 
+        // }
+        // lastScrollPosition = scrolled;
       });   
       
       // PART 2
@@ -520,7 +558,7 @@
       l_chartArea.append("path")
            .datum(hurricane_freq_yearly)
            .attr("class", "line")
-           .attr("fill", "none")   // using attr here, style would work too
+           .attr("fill", "none")
            .attr("stroke", "black")
            .attr("stroke-width", 3)
            .attr("d", lineGen);
