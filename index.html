@@ -67,30 +67,28 @@
       
         /* CSS FOR SCROLLED COMPONENTS */
 
-        #sticky-wrapper{
+        #part1-main{
+          /* display: flex;
+          flex-direction: row; */
           position: sticky;
           top: 0px;
-          padding-top: 1em;
-        }
-
-        #part1-main{
-          display: flex;
-          flex-direction: row;
         }
         
         #part1-left{
           height: 1000px;
-          display: flex;
+          /* display: flex; */
           /* flex-direction: row; */
-          flex-direction: column;
+          /* flex-direction: column; */
           padding-top: 1em;
           width: 50%;
+          position: sticky;
+          top: 0px;
         }
 
         #part1-right{
-          width: 50%;
+          width: 100%;
           text-align: center;
-
+          
         }
 
         #barchart {
@@ -114,14 +112,20 @@
           margin-bottom: 10px;
         }
 
+        #part2-text{
+          /* how much space do you need between the last bar annotation and part 2 */
+          margin-top: 300px;
+        }
+
         #part2{
           position: relative;
-          margin-top:2000px;
+          top: -800px; 
+          /* margin-top:300px; */
           background-color: white;
           z-index: 2;
           width: 50%;
           margin-left:50%;
-          padding-top: 10px;
+          /* padding-top: 10px; */
           
         }
 
@@ -143,14 +147,16 @@
         }
 
         .scrolled {
-          stroke-width:3;
+          stroke-width:2;
           stroke:rgb(0,0,0)
         }
 
-        .hideAnnotation{
+        /* .hideAnnotation{
           display: none;
-          /* max-height: 0px; */
-        }
+        } */
+        
+      
+
     </style>
   </head>
 
@@ -162,10 +168,11 @@
           In sit amet felis lorem. Curabitur cursus nulla magna. Vivamus a nulla sit amet tortor tincidunt sollicitudin quis aliquam massa. Praesent leo ante, tristique in vestibulum eget, sagittis in metus. Nulla varius nulla et feugiat laoreet. Nunc feugiat sollicitudin sem, non varius ligula. Aliquam sit amet ligula libero. Sed tincidunt diam leo, in porta lorem cursus nec. Aenean faucibus tristique neque vitae egestas. Pellentesque viverra dui ut urna fringilla, non tincidunt felis volutpat. Aliquam erat volutpat. Pellentesque ultrices ut nibh ut facilisis. Aenean in quam nec neque porta condimentum sed sit amet orci.
         </p>
       </div>
-      <div id="sticky-wrapper">
-        <h2 class="part1">Rising Ocean Temperatures Increase Tropical Cyclone Frequency and Intensity</h2>
-        <div id="part1-main">
+      <div id="everything_belowintro">
+      <!-- <div id="sticky-wrapper"> -->
+        <!-- <div id="part1-main"> -->
           <div id="part1-left">
+            <h2 class="part1">Rising Ocean Temperatures Increase Tropical Cyclone Frequency and Intensity</h2>
             <div id="map-container">
               <svg id="map"></svg>
             </div>
@@ -182,13 +189,11 @@
               </svg>
             </div>
           </div> <!--close part1-left (flexbox columns)-->
-          <div id="part1-right">
-            <h2 id="annotation-title"></h2>
-            <p id="annotation-text"></p>
-          </div>
-        </div> <!--close part1-main (flexbox rows)-->
-      </div> <!--close wrapper (sticky)-->
+        <!-- </div> close part1-main (flexbox rows) -->
+      <!-- </div> close wrapper (sticky) -->
       <div id="part2">
+        <div id="part1-right"> 
+        </div>
         <div id="part2-text">
           <h2>La Ni&#241a Season Approaches...</h2>
           <p style="font-style: italic;">
@@ -210,6 +215,7 @@
           </p>
         </div>
       </div>
+    </div> <!--close everything_belowintro-->
     </main>
   </body>
 
@@ -479,12 +485,20 @@
 
 
       //list of all my annotations i want to display
-      // let textpopups = {1:['Template callout'], 
-      //   6:['The 1910s saw a decrease in hurricane frequency,', "though 4 of the top 15 most deadly", 'Mainland U.S tropical cyclones are from this decade.'], 
-      //   13:['After the 1980s, the increase in average ocean', 'temperatures has consistently been above' ,'the century average.']}
-      let textpopups = {1:['Title1', 'Template callout'], 
-        6:['Title2', 'The 1910s saw a decrease in hurricane frequency, though 4 of the top 15 most deadly Mainland U.S tropical cyclones are from this decade.'], 
-        13:['Title3', 'After the 1980s, the increase in average ocean temperatures has consistently been above the century average.']}
+      let textpopups = {1:['CALLOUT BAR 1', 'Template callout'], 
+        6:['Title2 (BAR 6)', 'The 1910s saw a decrease in hurricane frequency, though 4 of the top 15 most deadly Mainland U.S tropical cyclones are from this decade.'], 
+        13:['Title3 (BAR 13)', 'After the 1980s, the increase in average ocean temperatures has consistently been above the century average.']}
+
+      let prev_t = 0
+      for(t in textpopups){
+        // console.log('here')
+        d3.select('#part1-right').append('div').attr('id', `popup${t}`).style('margin-top', (t-prev_t)*100-50)
+        // above creates margin based on distance from prev popup, also removing 50 pixels for how long the prev text probably was
+        current_popup = d3.select(`#popup${t}`)
+        current_popup.append('h2').text(textpopups[t][0])
+        current_popup.append('p').text(textpopups[t][1])
+        prev_t=t //keep track of previous t so the margins dont get too big
+      }
 
       //mapping of year to "bar-number" bc im stupid. 
       // like i have the barchart IDs as year1850 but the scroll works based on bar-number so. this is my solution
@@ -506,17 +520,17 @@
       };
 
       //create a function to update the annotation box of the bar chart
-      function annotationUpdate(barNumber, annotationText){
-        console.log('in here', annotationText)
-        d3.select('#annotation-title').text(annotationText[0]).attr("class", "");
-        d3.select('#annotation-text').text(annotationText[1]).attr("class", "");
-      }
+      // function annotationUpdate(barNumber, annotationText){
+      //   console.log('in here', annotationText)
+      //   d3.select('#annotation-title').text(annotationText[0]).classed('hideAnnotation', false).classed('displayAnnotation', true);
+      //   d3.select('#annotation-text').text(annotationText[1]).classed('hideAnnotation', false).classed('displayAnnotation', true);
+      // }
 
       window.addEventListener('scroll', function() {
         var scrolled = window.scrollY;
-        // console.log(scrolled)
+        console.log(scrolled)
 
-        //can adjust this
+        //can adjust this. if you change this, change for t in textpopups section
         bar_number = Math.floor((scrolled-250)/100);
         
         d3.selectAll(`rect`).attr('class', '')
@@ -525,13 +539,14 @@
         let current_bars = chartArea.selectAll(`#year${current_year}`)
         current_bars.attr('class', 'scrolled')
 
-        if(bar_number in textpopups){
-          annotationUpdate(bar_number, textpopups[bar_number])
-        }
-        else{
-          d3.select('#annotation-title').attr("class", "hideAnnotation");
-          d3.select('#annotation-text').attr("class", "hideAnnotation");
-        }
+        
+        // if(bar_number in textpopups){
+        //   annotationUpdate(bar_number, textpopups[bar_number])
+        // }
+        // else{
+        //   d3.select('#annotation-title').attr("class", "hideAnnotation");
+        //   d3.select('#annotation-text').attr("class", "hideAnnotation");
+        // }
 
         updateMap(bar_number);
 
