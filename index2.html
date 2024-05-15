@@ -4,14 +4,20 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://github.com/1wheel/graph-scroll/blob/gh-pages/graph-scroll.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
-    <script src="https://d3js.org/topojson.v3.min.js"></script>
-    <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
 
     <style>
       /* CSS FOR STRUCTURE, TEXT */
         html, body {
             margin: 0;
             padding: 0;
+            /* height: 100%;
+            width: 100%; */
         }
 
         body, button {
@@ -22,47 +28,16 @@
           line-height: 1.75;
         }
 
-        /* CSS FOR MAP */
-
-        #map-container { 
-          height: 48%;
-          width: 100%; 
-          background-color: rgb(233, 233, 233);
+        #map { 
+            height: 50%;
+            width: 100%; 
+            /* width: 50%; */
         }
-
-        #map {
-          height: 100%;
-          width: 100%;
-        }
-
-        .boundary {
-          fill: white;
-          stroke: #c3c3c3;
-          stroke-width: 1px;
-        }
-
-        .hexagons path {
-          shape-rendering: optimizeSpeed;
-        }
-
-        /* CSS FOR MAP LEGEND */
-
-        #legend-container {
-          height: 2%;
-          width: 100%;
-        }
-
-        #legend {
-          height: 100%;
-          width: 100%;
-        }
-      
-        /* CSS FOR SCROLLED COMPONENTS */
 
         #sticky-wrapper{
           position: sticky;
           top: 0px;
-          padding-top: 1em;
+          padding-top: 2em;
         }
 
         #part1-main{
@@ -83,10 +58,6 @@
           width: 50%;
           text-align: center;
 
-        }
-
-        #barchart {
-          width: 100%;
         }
 
         #barchart_div{
@@ -157,14 +128,9 @@
         <h2 class="part1">Rising Ocean Temperatures Increase Tropical Cyclone Frequency and Intensity</h2>
         <div id="part1-main">
           <div id="part1-left">
-            <div id="map-container">
-              <svg id="map"></svg>
-            </div>
-            <div id="legend-container">
-              <svg id="legend"></svg>
-            </div>
+            <div id="map"></div>
             <div id="barchart_div">
-              <svg id="barchart" height="200" width="750" style="margin-top:0px" >
+              <svg id="barchart" height="500" width="750" style="margin-top:0px" >
               </svg>
             </div>
           </div> <!--close part1-left (flexbox columns)-->
@@ -200,95 +166,101 @@
   </body>
 
   <script>
-    // handling map
-    const mapSVG = d3.select("#map");
-    const mapContainer = d3.select("#map-container");
+    // Leaflet setup
+    var map = L.map('map', { zoomControl: false, scrollWheelZoom: false, dragging: false, zoomSnap: 0.2 }).setView([20, -58], 3.6);
 
-    mapSVG.attr("width", mapContainer.node().offsetWidth);
-    mapSVG.attr("height", mapContainer.node().offsetHeight);
-    const mapWidth = mapSVG.attr("width");
-    const mapHeight = mapSVG.attr("height");
-    const map = mapSVG.append("g");
+    var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    });
+    CartoDB_Positron.addTo(map);
 
-    let geoData;
-    let hexagons;
-    let colorScale;
-    let extent;
+    // fetch('ssta.geojson')
+    //         .then(response => response.json())
+    //         .then(data => {
+    //           var sstaValues = data.features.map(function(feature) {
+    //               return feature.properties.ssta;
+    //           });
+    //           var extent = d3.extent(sstaValues);
 
-    const requestMap = async function() {
-      const world = await d3.json("map.json");
+    //           var colorScale = d3.scaleLinear()
+    //             .domain(extent)
+    //             .range(["#0006b5", "#ff3617"]);
 
-      var boundaries = topojson.feature(world, world.objects.croppedmap);
+    //           function getColor(propertyValue) {
+    //             if (propertyValue == "") {
+    //               return 'transparent';
+    //             } else {
+    //               return colorScale(propertyValue);
+    //             }
+    //           }
 
-      var projection = d3.geoMercator()
-        .fitSize([mapWidth, mapHeight], boundaries);
+    //           L.geoJSON(data, {
+    //                 pointToLayer: function (feature, latlng) {
+    //                     return L.circleMarker(latlng, {
+    //                         fillColor: getColor(feature.properties.ssta), 
+    //                         weight: 0,
+    //                         radius: 2,
+    //                         fillOpacity: 0.3
+    //                     });
+    //                 }
+    //             }).addTo(map);
+    //         });
 
-      var path = d3.geoPath().projection(projection);
+    let geojsonLayer;
+    const refreshMap = async function (decade) {
+      const geoData = await d3.json('ssta_aggregate.geojson');
 
-      // rescaling projection to better fit width of container
-      const bounds = path.bounds(boundaries);
-      const boundingBoxHeight = bounds[1][1] - bounds[0][1];
-      const scaleFactor = mapWidth / (bounds[1][0] - bounds[0][0]);
-
-      const newScale = projection.scale() * scaleFactor;
-      const newHeight = boundingBoxHeight * scaleFactor;
-  
-      projection.scale(newScale)
-
-      map.attr("transform", `translate(${85}, ${30})`);
-
-      // loading in sea surface temp anomaly data
-      geoData = await d3.json('ssta_aggregate.geojson');
-      const filteredData = geoData.features.filter(feature => feature.properties.ssta[0] !== "");
-      filteredData.forEach( d => {
-        d.position = projection( [d.geometry.coordinates[0], d.geometry.coordinates[1]] );
-      });
-
-      // creating hex grid
-      const hexbin = d3.hexbin()
-          .x(d => d.position[0])
-          .y(d => d.position[1])
-          .radius(13)
-          .size([mapWidth, mapHeight]);
-
-      const bins = hexbin(filteredData);
-
-      const sstaValues = geoData.features.flatMap(feature => feature.properties.ssta);
-      extent = d3.extent(sstaValues);
-
-      colorScale = d3.scaleDiverging()
-        .domain([extent[1], 0, extent[0]])
-        .interpolator(d3.interpolateRdBu);
-      // colorScale = d3.scaleSequential().interpolator(d3.interpolateRdBu).domain(extent.reverse());
-
-      hexagons = map.append("g").attr("class", "hexagons")
-          .selectAll("path")
-          .data(bins)
-          .enter().append("path")
-          .attr("transform", d => `translate(${d.x},${d.y})`)
-          .attr("d", hexbin.hexagon())
-          .attr("fill", bin => colorScale(d3.mean(bin, d => d.properties.ssta[0])))
-          .lower();
-
-      map.append("g")
-        .selectAll("path.boundary").data(boundaries.features)
-        .join("path")
-        .attr("class", "boundary")
-        .attr("d", path)
-        .raise(); 
-    }
-    requestMap();
-
-    const updateMap = (decade) => {
-      decade = Math.max(0, Math.min(17, decade));
-
-      if (hexagons) {
-        hexagons.transition().duration(50)
-        .attr("fill", bin => colorScale(d3.mean(bin, d => d.properties.ssta[decade])));
+      if (decade < 0) {
+        decade = 0;
       }
-    };
 
-    // generating bar charts and scroll functionality
+      if (decade > 17) {
+        decade = 17;
+      }
+
+    if (geojsonLayer) {
+      map.removeLayer(geojsonLayer);
+    }
+
+    // var sstaValues = geoData.features.map(function(feature) {
+    //     return feature.properties.ssta[decade];
+    // });
+
+    const sstaValues = geoData.features.flatMap(feature => feature.properties.ssta);
+    var extent = d3.extent(sstaValues);
+
+    // var colorScale = d3.scaleLinear()
+    //   .domain(extent)
+    //   .range(["#0006b5", "#ff3617"]);
+
+    // console.log(geoData.features[0].properties.ssta)
+
+    var colorScale = d3.scaleSequential().interpolator(d3.interpolateRdBu).domain(extent.reverse())
+
+    function getColor(propertyValue) {
+      if (!propertyValue) {
+        return 'transparent';
+      } else {
+        return colorScale(propertyValue);
+      }
+    }
+
+    geojsonLayer = L.geoJSON(geoData, {
+          pointToLayer: function (feature, latlng) {
+              return L.circleMarker(latlng, {
+                  fillColor: getColor(feature.properties.ssta[decade]), 
+                  weight: 0,
+                  radius: 4,
+                  fillOpacity: 1
+              });
+          }
+      }).addTo(map);
+    }
+
+    refreshMap(0);
+
     const requestData = async function() {
       const hurricane_frequency = await d3.csv("hf_decade_avg.csv", d3.autoType);
 
@@ -448,6 +420,20 @@
 
         //can adjust this
         bar_number = Math.floor((scrolled-250)/100);
+
+
+        if (0 < bar_number < 17) {
+          refreshMap(bar_number)
+        } 
+        
+        if (bar_number < 0) {
+          refreshMap(0);
+        } 
+        
+        if (bar_number > 17) {
+          refreshMap(17);
+        }
+    
         
         d3.selectAll(`rect`).attr('class', '')
         let current_year = years[bar_number]
@@ -462,8 +448,6 @@
           d3.select('#annotation-title').attr("class", "hideAnnotation");
           d3.select('#annotation-text').attr("class", "hideAnnotation");
         }
-
-        updateMap(bar_number);
 
         //dynamically add more pixels to the page -- DON'T REALLY NEED THIS IF YOU HAVE window.scrollTo(0, BIG NUMBER) ON LOAD!
         // var content = d3.select('main');
