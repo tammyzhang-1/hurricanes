@@ -48,13 +48,21 @@
         /* CSS FOR MAP LEGEND */
 
         #legend-container {
-          height: 2%;
+          height: 1%;
           width: 100%;
         }
 
         #legend {
           height: 100%;
           width: 100%;
+        }
+
+        #legend-labels {
+          display: flex;
+          justify-content: space-between;
+          padding: 0 2px 0 5px;
+          font-size: 0.85em;
+          color: gray;
         }
       
         /* CSS FOR SCROLLED COMPONENTS */
@@ -88,9 +96,10 @@
         #barchart {
           width: 100%;
         }
-
+        
         #barchart_div{
           /* width: 50%; */
+          padding-top: 0.5em;
           text-align: center;
         }
 
@@ -130,7 +139,7 @@
         }
         
         .gridlines line {
-          stroke: #444;
+          stroke: #d5d5d5;
         }
 
         .scrolled {
@@ -161,10 +170,15 @@
               <svg id="map"></svg>
             </div>
             <div id="legend-container">
+              <div id="legend-labels">
+                <span id="min-value">-2&deg;F</span>
+                <span id="mid-value">Divergence from 1971-2000 Average</span>
+                <span id="max-value">2&deg;F</span>
+              </div>
               <svg id="legend"></svg>
             </div>
             <div id="barchart_div">
-              <svg id="barchart" height="200" width="750" style="margin-top:0px" >
+              <svg id="barchart" height="180" width="750" style="margin-top:0px" >
               </svg>
             </div>
           </div> <!--close part1-left (flexbox columns)-->
@@ -209,6 +223,28 @@
     const mapWidth = mapSVG.attr("width");
     const mapHeight = mapSVG.attr("height");
     const map = mapSVG.append("g");
+
+    // setting up legend
+    const legendSVG = d3.select("#legend");
+    const legendContainer = d3.select("#legend-container");
+
+    legendSVG.attr("width", legendContainer.node().offsetWidth);
+    legendSVG.attr("height", legendContainer.node().offsetHeight);
+    var legendWidth = legendSVG.attr("width");
+    var legendHeight = legendSVG.attr("height");
+
+    var legendMargin = { top: 2, right: 10, bottom: 10, left: 10 };
+    var legendX = legendMargin.left;
+    var legendY = legendMargin.top;
+
+    // creating linear gradient
+    var defs = legendSVG.append("defs");
+    var linearGradient = defs.append("linearGradient")
+        .attr("id", "legendGradient")
+        .attr("x1", "100%")
+        .attr("y1", "0%")
+        .attr("x2", "0%")
+        .attr("y2", "0%");
 
     let geoData;
     let hexagons;
@@ -256,10 +292,7 @@
       const sstaValues = geoData.features.flatMap(feature => feature.properties.ssta);
       extent = d3.extent(sstaValues);
 
-      colorScale = d3.scaleDiverging()
-        .domain([extent[1], 0, extent[0]])
-        .interpolator(d3.interpolateRdBu);
-      // colorScale = d3.scaleSequential().interpolator(d3.interpolateRdBu).domain(extent.reverse());
+      colorScale = d3.scaleDiverging().domain([-extent[0], 0, extent[0]]).interpolator(d3.interpolateRdBu);
 
       hexagons = map.append("g").attr("class", "hexagons")
           .selectAll("path")
@@ -270,18 +303,72 @@
           .attr("fill", bin => colorScale(d3.mean(bin, d => d.properties.ssta[0])))
           .lower();
 
+      // adding map boundaries
       map.append("g")
         .selectAll("path.boundary").data(boundaries.features)
         .join("path")
         .attr("class", "boundary")
         .attr("d", path)
         .raise(); 
+
+      console.log(extent)
+      console.log(colorScale.range())
+
+      // creating legend
+      linearGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", colorScale(-extent[0])); 
+      linearGradient.append("stop")
+        .attr("offset", "12.5%")
+        .attr("stop-color", colorScale(-3 * extent[0] / 4));
+      linearGradient.append("stop")
+        .attr("offset", "25%")
+        .attr("stop-color", colorScale(-extent[0] / 2)); 
+      linearGradient.append("stop")
+        .attr("offset", "37.5%")
+        .attr("stop-color", colorScale(-extent[0] / 4));
+      linearGradient.append("stop")
+        .attr("offset", "50%")
+        .attr("stop-color", "white"); 
+      linearGradient.append("stop")
+        .attr("offset", "62.5%")
+        .attr("stop-color", colorScale(extent[0] / 4));
+      linearGradient.append("stop")
+        .attr("offset", "75%")
+        .attr("stop-color", colorScale(extent[0] / 2)); 
+      linearGradient.append("stop")
+        .attr("offset", "87.5%")
+        .attr("stop-color", colorScale(3 * extent[0] / 4));
+      linearGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", colorScale(extent[0]));
+
+      // applying gradient
+      var legend = legendSVG.append("rect")
+        .attr("x", legendX)
+        .attr("y", legendY)
+        .attr("width", legendWidth)
+        .attr("height", legendHeight)
+        .style("fill", "url(#legendGradient)");
+
+        console.log(legendWidth, legendHeight)
+
+      // adding text labels
+      // var minValueLabel = mapSVG.append("text")
+      //   .attr("x", legendX)
+      //   .attr("y", legendY + legendHeight + 10)
+      //   .text(extent[0]); 
+
+      // var maxValueLabel = mapSVG.append("text")
+      //   .attr("x", legendX + legendWidth)
+      //   .attr("y", legendY + legendHeight + 10)
+      //   .style("text-anchor", "end")
+      //   .text(extent[1]);
     }
     requestMap();
 
     const updateMap = (decade) => {
       decade = Math.max(0, Math.min(17, decade));
-
       if (hexagons) {
         hexagons.transition().duration(50)
         .attr("fill", bin => colorScale(d3.mean(bin, d => d.properties.ssta[decade])));
