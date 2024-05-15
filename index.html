@@ -99,7 +99,7 @@
         
         #barchart_div{
           /* width: 50%; */
-          padding-top: 0.5em;
+          padding-top: 1em;
           text-align: center;
         }
 
@@ -428,14 +428,14 @@
               .attr("width", yearScale.bandwidth())
               .attr("id", d=>`year${d.data.Year}`)
 
-      //add titl
+      //add title
       annotations.append('text')
                 .text('Frequency of Hurricanes by Decade')
                 .attr('x',  (b_chartWidth-margin.right)/2)
                 .attr('y', margin.top)
                 .style("font-size", "15px")
                 .style('font-weight', 'bold')
-                // .style("text-anchor", "middle");
+
       //add legend
       annotations.append('rect')
                 .attr('x', b_chartWidth+margin.right*(2/3)-25)
