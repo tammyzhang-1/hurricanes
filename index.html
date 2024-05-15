@@ -271,7 +271,7 @@
   
       projection.scale(newScale)
 
-      map.attr("transform", `translate(${85}, ${30})`);
+      map.attr("transform", `translate(${88}, ${26})`);
 
       // loading in sea surface temp anomaly data
       geoData = await d3.json('ssta_aggregate.geojson');
@@ -311,9 +311,6 @@
         .attr("d", path)
         .raise(); 
 
-      console.log(extent)
-      console.log(colorScale.range())
-
       // creating legend
       linearGradient.append("stop")
         .attr("offset", "0%")
@@ -350,20 +347,6 @@
         .attr("width", legendWidth)
         .attr("height", legendHeight)
         .style("fill", "url(#legendGradient)");
-
-        console.log(legendWidth, legendHeight)
-
-      // adding text labels
-      // var minValueLabel = mapSVG.append("text")
-      //   .attr("x", legendX)
-      //   .attr("y", legendY + legendHeight + 10)
-      //   .text(extent[0]); 
-
-      // var maxValueLabel = mapSVG.append("text")
-      //   .attr("x", legendX + legendWidth)
-      //   .attr("y", legendY + legendHeight + 10)
-      //   .style("text-anchor", "end")
-      //   .text(extent[1]);
     }
     requestMap();
 
