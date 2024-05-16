@@ -181,7 +181,7 @@
 
         #part2-text{
           /* how much space do you need between the last bar annotation and part 2 */
-          margin-top: 150px;
+          margin-top: 3em;
         }
 
         #part2 {
@@ -609,21 +609,30 @@
       window.addEventListener('scroll', function() {
         var scrolled = window.scrollY - introOffset;
 
+        var viewportHeight = window.innerHeight;
+        var middleThirdStart = viewportHeight / 8;
+        var middleThirdEnd = (viewportHeight / 4) * 3;
+        var half = viewportHeight / 2;
+
         //can adjust this. if you change this, change for t in textpopups section
         bar_number = Math.floor((scrolled-250)/100);
 
         // checking if map is in view
-        if (window.scrollY >= introOffset) {
+        console.log(window.scrollY)
+        console.log(d3.select("#part1-left").node().offsetHeight)
+        if (window.scrollY >= introOffset && window.scrollY <= d3.select("#part1-left").node().offsetHeight + introOffset - half) {
           mapContainer.classed('visible', true);
         } else {
           mapContainer.classed('visible', false);
         }
 
-        // checking if text boxes are in view
-        var viewportHeight = window.innerHeight;
-        var middleThirdStart = viewportHeight / 8;
-        var middleThirdEnd = (viewportHeight / 4) * 3;
+        // if (mapContainer.node().getBoundingClientRect().bottom <= topFourth) {
+        //   mapContainer.classed('visible', false);
+        // } else {
+        //   mapContainer.classed('visible', true);
+        // }
 
+        // checking if text boxes are in view
         var textBoxes = d3.selectAll('.popup-text-container');
 
         textBoxes.each(function(d, i) {
@@ -642,6 +651,7 @@
               parentContainer.classed('hidden', true);
             }
           } else {
+            // handling the first text box
             if (divTop >= middleThirdStart) {
               parentContainer.classed('visible', true);
             } else {
@@ -649,8 +659,6 @@
               parentContainer.classed('hidden', true);
             }
           }
-
-          
         });
         
         d3.selectAll(`rect`).attr('class', '')
