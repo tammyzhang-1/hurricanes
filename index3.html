@@ -57,6 +57,23 @@
           object-fit: cover;
         }
 
+        #arrow {
+          position: absolute;
+          bottom: 2em;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 3;
+          width: 60px;
+          height: 40px;
+          padding-top: 1em;
+      }
+
+        #arrow path {
+          stroke: white;
+          stroke-width: 2px;
+          fill: none;
+        }
+
         /* CSS FOR MAP */
         #map-container { 
           height: 100vh;
@@ -209,6 +226,22 @@
           <h2>Unprecedented ocean heat, the approach of La Ni&#241a, and 2024's hurricane season</h2>
           <p>Visualization made by Mary Kolbas and Tammy Zhang</p>
         </div>
+        <svg id = "arrow">
+          <path d = "M0 0 L20 20 L40 0" opacity = "0">
+              <animate
+              attributeName = "d"
+              begin = "1s"
+              values = "M0 0 L20 20 L40 0; M0 20 L20 40 L40 20"
+              dur = "1.5s"
+              repeatCount = "indefinite" />
+              <animate
+              attributeName = "opacity"
+              begin = "1s"
+              values = "0; 1; 0"
+              dur = "1.5s"
+              repeatCount = "indefinite" />
+          </path>
+      </svg>
         <video id="intro-vid" src="cover-vid.mp4" muted autoplay loop></video>
       </div>
       <div id="everything_belowintro">
