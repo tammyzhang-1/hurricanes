@@ -156,7 +156,7 @@
 
         #part1-right{
           width: 100%;
-          text-align: center;
+          /* text-align: center; */
         }
 
         #barchart {
@@ -175,8 +175,15 @@
         #part2-text{
           width: 50%;
           margin: 0 auto;
-          text-align: center;
+          /* text-align: center; */
           margin-bottom: 10px;
+        }
+
+        #part2-text2{
+          width: 50%;
+          margin: 0 auto;
+          /* text-align: center; */
+          padding-bottom: 3em;
         }
 
         #part2-text{
@@ -199,6 +206,8 @@
           flex-direction:row;
           justify-content: center;
           align-items: center;
+          padding-top: 2em;
+          padding-bottom: 2em;
         }
 
       /* CSS FOR D3 VISUALIZATIONS */
@@ -268,21 +277,24 @@
       </div>
     </div> <!--close everything_belowintro-->
     <div id="part2-text">
-      <h2>La Ni&#241a Season Approaches...</h2>
-      <p style="font-style: italic;">
-        "NOAA's most recent forecasts predict 80% chance of La Nina conditions during this year's hurricane season + in combination with record-breaking ocean temps, this hurricane season is highly likely to be unprecedented."
-      </p>
+      <h2>Another factor contributing to hurricanes this year: La Ni&#241a.</h2>
       <p> 
-        La Ni&#241a refers to the periodic cooling of ocean surface temperatures in the central and east-central equatorial Pacific. This weakens vertical wind sheer and trade winds in the 
-        Atlantic, where tropical storms and hurricanes that hit the eastern United States develop. Less atmospheric stability means that the east coast experiences more hurricanes during La Ni&#241a 
-        than during El Ni&#241o.
+        La Ni&#241a refers to the periodic cooling of ocean surface temperatures in the central and east-central equatorial Pacific. This cooling weakens vertical wind shear and trade winds in the 
+        Atlantic, where tropical storms and hurricanes that hit the eastern United States develop. Weaker winds are less able to disrupt the structure and formation of developing storms, contributing to a 
+        greater number of storms in La Ni&#241a years compared to El Ni&#241o years.
       </p>
+      <p>
+        Furthermore, Dr. Phil Klotzbach, a researcher at Colorado State University, stated that La Ni&#241a years tend to see an increase in hurricanes forming in the western side of the development zone, increasing the chances that a storm makes landfall and therefore increasing the risks to coastal areas.
+      </p>
+     
     </div>
     <div id="part2-main">
       <svg id="linechart" height="300" width="800" style="margin-top:0px" ></svg>
     </div>
-    <div id="part2-text">
-      
+    <div id="part2-text2">
+      <p>
+        Since June of last year, the Earth has been experiencing an El Ni&#241o event in which warmer Pacific ocean temperatures have created conditions that have helped surpress hurricanes. However, the National Oceanic and Atmospheric Administration (NOAA) has announced this past April that El Ni&#241o has weakened, with La Ni&#241a conditions having an almost 70% chance of occurring during 2024's Atlantic hurricane season (running from June 1 to November 30). 
+      </p>
     </div>
     </main>
   </body>
@@ -612,7 +624,7 @@
         var viewportHeight = window.innerHeight;
         var middleThirdStart = viewportHeight / 8;
         var middleThirdEnd = (viewportHeight / 4) * 3;
-        var half = viewportHeight / 2;
+        var third = viewportHeight / 3;
 
         //can adjust this. if you change this, change for t in textpopups section
         bar_number = Math.floor((scrolled-250)/100);
@@ -620,7 +632,7 @@
         // checking if map is in view
         console.log(window.scrollY)
         console.log(d3.select("#part1-left").node().offsetHeight)
-        if (window.scrollY >= introOffset && window.scrollY <= d3.select("#part1-left").node().offsetHeight + introOffset - half) {
+        if (window.scrollY >= introOffset && window.scrollY <= d3.select("#part1-left").node().offsetHeight + introOffset - third) {
           mapContainer.classed('visible', true);
         } else {
           mapContainer.classed('visible', false);
