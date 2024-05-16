@@ -531,9 +531,9 @@
           'Sea surface temperatures in this region are known to affect the hurricane season, with warmer waters providing more energy that serve as the driving force behind Atlantic storms.'], 
         6:['', 
           'For example, the 1910s, a decade with cooler temperatures than average, saw a decrease in hurricane frequency - although 4 of the top 15 most deadly mainland U.S tropical cyclones are still from this decade.'], 
-        13:['In recent decades, the change in sea surface temperatures has been dramatic.', 
+        12:['In recent decades, the change in sea surface temperatures has been dramatic.', 
           'Although temperatures have been gradually increasing over the course of the past century, the increase in average ocean temperatures after the 1980s has been of particular concern to climate scientists due to their extremely rapid rate of change. Accordingly, these recent decades have seen growing numbers of tropical storm events, with the 2020s already having the highest average yearly rate of Atlantic basin storms of any decade since at least 1850.' ],
-        16:["In 2024, the Main Development Region's surface temperatures are already the warmest they've been in recent history.", 
+        14:["In 2024, the Main Development Region's surface temperatures are already the warmest they've been in recent history.", 
             'Benjamin Kirtman, a professor of atmospheric sciences at the University of Miami, described these abnormally warm conditions as "unprecedented" and "alarming" - "an out-of-bounds anomaly."']
       }
 
@@ -541,7 +541,7 @@
       for(t in textpopups){
         d3.select('#part1-right').append('div')
                                   .attr('id', `popup${t}`)
-                                  .style('margin-top', ((prev_t == 0) ? (t-prev_t)*100 + introOffset-300-50 : (t-prev_t)*100-50) )
+                                  .style('margin-top', ((prev_t == 0) ? (t-prev_t)*100 + introOffset-600-50 : (t-prev_t)*100-50) )
                                   .attr('class', 'popup')
         // above creates margin based on distance from prev popup, also removing 50 pixels for how long the prev text probably was
         current_popup = d3.select(`#popup${t}`)
