@@ -124,7 +124,7 @@
 
         .popup {
           background-color: rgba(255, 255, 255, 0.812);
-          padding: 1em;
+          padding: 25px;
         }
 
         #part1-left{
@@ -255,6 +255,8 @@
   </body>
 
   <script>
+    let introOffset = d3.select("#intro").node().offsetHeight;
+
     // handling map
     const mapSVG = d3.select("#map");
     const mapContainer = d3.select("#map-container");
@@ -472,7 +474,7 @@
 
       //add title
       annotations.append('text')
-                .text('Frequency of Hurricanes by Decade')
+                .text('Average Number of Atlantic Basin Storms Per Year By Decade')
                 .attr('x',  (b_chartWidth-margin.right)/2)
                 .attr('y', margin.top)
                 .style("font-size", "15px")
@@ -526,7 +528,10 @@
 
       let prev_t = 0
       for(t in textpopups){
-        d3.select('#part1-right').append('div').attr('id', `popup${t}`).style('margin-top', (t-prev_t)*100-50).attr('class', 'popup')
+        d3.select('#part1-right').append('div')
+                                  .attr('id', `popup${t}`)
+                                  .style('margin-top', ((prev_t == 0) ? (t-prev_t)*100 + introOffset-300-50 : (t-prev_t)*100-50) )
+                                  .attr('class', 'popup')
         // above creates margin based on distance from prev popup, also removing 50 pixels for how long the prev text probably was
         current_popup = d3.select(`#popup${t}`)
         current_popup.append('h2').text(textpopups[t][0])
@@ -551,7 +556,6 @@
         window.scrollTo(0, 200); //bring user back to the top
       };
 
-      let introOffset = d3.select("#intro").node().offsetHeight;
 
       window.addEventListener('scroll', function() {
         var scrolled = window.scrollY - introOffset;
@@ -578,11 +582,13 @@
       // PART 2
       const oni_data = await d3.csv("oni.csv", d3.autoType);
       const hurricane_freq_yearly = await d3.csv("hurricane_frequency_cut.csv", d3.autoType);
+      console.log(hurricane_freq_yearly)
+
       //set up bars
       const linechart = d3.select('svg#linechart')
       const l_width = linechart.attr("width");
       const l_height = linechart.attr("height");
-      const l_margin = {top: 10, right: 150, bottom: 50, left: 50};
+      const l_margin = {top: 40, right: 150, bottom: 50, left: 50};
       const l_chartWidth = l_width - l_margin.left - l_margin.right;
       const l_chartHeight = l_height - l_margin.top - l_margin.bottom;
       let l_annotations = linechart.append("g").attr("id","annotations");
@@ -597,11 +603,29 @@
       let l_leftAxis = d3.axisLeft(valueScale).ticks(7);
       let l_leftGridlines = d3.axisLeft(valueScale)
                             .tickSize(-l_chartWidth-10)
-                            .tickFormat("").ticks(7)
+                            .tickFormat("").ticks(7);
+
+
+      //add title
+      l_annotations.append('text')
+                .html('La Ni&#241a and El Ni&#241o Intensity vs. Atlantic Basin Storm Frequency')
+                .attr('x',  (l_chartWidth-margin.right)/2)
+                .attr('y', l_margin.top-20)
+                .style("font-size", "15px")
+                .style('font-weight', 'bold')
+
       l_annotations.append("g")
-                .attr("class", "y axis")
+                .attr("class", "yaxis-left")
                 .attr("transform",`translate(${l_margin.left-10},${l_margin.top})`)
                 .call(l_leftAxis);
+      l_annotations.append("text")
+                    .attr("class", "ylabel-left")
+                    .attr("y", 15)
+                    .attr("x", -(l_chartHeight+margin.top)/2) //also hardcoded -20 to center
+                    .attr("transform", "rotate(-90)")
+                    .style("text-anchor", "middle")
+                    .text("Intensity")
+                    .style('font-size', '12px'); 
 
       let l_bottomAxis = d3.axisBottom(l_yearScale).tickFormat(d3.format('.0f')).ticks(40);
       
@@ -635,9 +659,28 @@
                             .tickFormat("");
 
       l_annotations.append("g")
-                .attr("class", "y axis")
+                .attr("class", "yaxis-right")
                 .attr("transform",`translate(${l_chartWidth+l_margin.right-100+10},${l_margin.top})`)
                 .call(l_rightAxis);
+      
+      //get rid of negative ticks on the yxas right
+      let yaxis_right = d3.select('.yaxis-right')
+      yaxis_right.selectAll(".tick")
+        .each(function (d, i) {
+            if (d < 0) {
+                this.remove();
+            }
+      });
+      
+      l_annotations.append("text")
+                    .attr("class", "ylabel-right")
+                    .attr("y", l_chartWidth+margin.right-55)
+                    .attr("x", -(l_chartHeight+margin.top)/2) 
+                    .text("Atlantic Basin Storm Totals")
+                    .attr("transform", "rotate(-90)")
+                    .style("text-anchor", "middle")
+                    .style('font-size', '12px'); 
+      
 
       //populate the chart with bars
       oni_data.forEach(d=>{
@@ -652,16 +695,18 @@
 
       l_chartArea.append('line')
                   .attr("x1", -10)
-                  .attr("x2", l_chartWidth+40)
+                  .attr("x2", l_chartWidth+30)
                   .attr("y1", l_freqScale(d3.mean(hurricane_freq_yearly, d => d.Total)))
                   .attr("y2", l_freqScale(d3.mean(hurricane_freq_yearly, d => d.Total)))
                   .attr("stroke", 'gray')
                   .attr('stroke-width', '2px')
       l_chartArea.append('text')
-                .attr('x',  l_chartWidth+45)
-                .attr('y', l_freqScale(d3.mean(hurricane_freq_yearly, d => d.Total)))
-                .text(`Average: ${d3.format(".1f")(d3.mean(hurricane_freq_yearly, d => d.Total),2)}`)
-                .style("font-size", "11px");
+                .attr('x',  l_chartWidth+50)
+                .attr('y', l_freqScale(d3.mean(hurricane_freq_yearly, d => d.Total))+2)
+                .text(`Avg: ${d3.format(".1f")(d3.mean(hurricane_freq_yearly, d => d.Total),2)}`)
+                .style("font-size", "11px")
+                .style('font-weight', 'bold')
+                .style('fill', 'gray');
 
       //populate the chart with lines 
       let lineGen = d3.line()
@@ -675,6 +720,49 @@
            .attr("stroke", "black")
            .attr("stroke-width", 3)
            .attr("d", lineGen);
+
+
+      //add legend
+      let modificationy = l_margin.top-20;
+      l_annotations.append('rect')
+                .attr('x', 100)
+                .attr('y', 0+modificationy)
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr('stroke', 'red')
+                .attr('fill', 'red');
+      l_annotations.append('text')
+                .html(`La Ni&#241a`)
+                .attr('x',  123)
+                .attr('y', 10+modificationy)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');
+      l_annotations.append('rect')
+                .attr('x', 100)
+                .attr('y', 15+modificationy)
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr('stroke', 'blue')
+                .attr('fill', 'blue');
+      l_annotations.append('text')
+                .html(`El Ni&#241o`)
+                .attr('x',  123)
+                .attr('y', 25+modificationy)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');
+      l_annotations.append('line')
+                  .attr("x1", 95)
+                  .attr("x2", 120)
+                  .attr("y1", 35+modificationy)
+                  .attr("y2", 35+modificationy)
+                  .attr("stroke", 'black')
+                  .attr('stroke-width', '3px');
+      l_annotations.append('text')
+                .html(`Storm Count`)
+                .attr('x',  123)
+                .attr('y', 40+modificationy)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');      
     }
 
     requestData();
