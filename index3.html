@@ -362,7 +362,7 @@
       const hexbin = d3.hexbin()
           .x(d => d.position[0])
           .y(d => d.position[1])
-          .radius(29)
+          .radius(32)
           .size([mapWidth, mapHeight]);
 
       const bins = hexbin(filteredData);
@@ -575,11 +575,16 @@
         d3.select('#part1-right').append('div')
                                   .attr('id', `popup${t}`)
                                   .style('margin-top', ((prev_t == 0) ? (t-prev_t)*100 + introOffset-600-50 : (t-prev_t)*100-50) )
-                                  .attr('class', 'popup')
+                                  .attr('class', ((t == 1) ? 'popup' : 'popup hidden'))
         // above creates margin based on distance from prev popup, also removing 50 pixels for how long the prev text probably was
         current_popup = d3.select(`#popup${t}`)
-        current_popup.append('h2').text(textpopups[t][0])
-        current_popup.append('p').text(textpopups[t][1])
+
+        current_popup.append('div').attr('class', 'popup-text-container').attr('id', `popup-text-container${t}`)
+        
+        current_popup_container = d3.select(`#popup-text-container${t}`)
+        
+        current_popup_container.append('h2').text(textpopups[t][0])
+        current_popup_container.append('p').text(textpopups[t][1])
         prev_t=t //keep track of previous t so the margins dont get too big
       }
 
@@ -613,6 +618,40 @@
         } else {
           mapContainer.classed('visible', false);
         }
+
+        // checking if text boxes are in view
+        var viewportHeight = window.innerHeight;
+        var middleThirdStart = viewportHeight / 8;
+        var middleThirdEnd = (viewportHeight / 4) * 3;
+
+        var textBoxes = d3.selectAll('.popup-text-container');
+
+        textBoxes.each(function(d, i) {
+          var selectedBox = d3.select(this);
+
+          var divTop = selectedBox.node().getBoundingClientRect().top;
+          var divBottom = selectedBox.node().getBoundingClientRect().bottom;
+
+          var parentContainer = d3.select(this.parentNode);
+
+          if (i != 0) {
+            if (divTop >= middleThirdStart && divBottom <= middleThirdEnd) {
+              parentContainer.classed('visible', true);
+            } else {
+              parentContainer.classed('visible', false);
+              parentContainer.classed('hidden', true);
+            }
+          } else {
+            if (divTop >= middleThirdStart) {
+              parentContainer.classed('visible', true);
+            } else {
+              parentContainer.classed('visible', false);
+              parentContainer.classed('hidden', true);
+            }
+          }
+
+          
+        });
         
         d3.selectAll(`rect`).attr('class', '')
         let current_year = years[bar_number]
