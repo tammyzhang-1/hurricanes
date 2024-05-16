@@ -105,15 +105,14 @@
           margin-top: 10px;
         }
 
-        .part1, #part2-text{
+        .part1, .part2-text{
           width: 80%;
           margin: 0 auto;
           text-align: center;
           margin-bottom: 10px;
         }
 
-        #part2-text{
-          /* how much space do you need between the last bar annotation and part 2 */
+        .margin-top{
           margin-top: 300px;
         }
 
@@ -194,7 +193,7 @@
       <div id="part2">
         <div id="part1-right"> 
         </div>
-        <div id="part2-text">
+        <div class="part2-text margin-top">
           <h2>La Ni&#241a Season Approaches...</h2>
           <p style="font-style: italic;">
             "NOAA's most recent forecasts predict 80% chance of La Nina conditions during this year's hurricane season + in combination with record-breaking ocean temps, this hurricane season is highly likely to be unprecedented."
@@ -209,7 +208,7 @@
         <div id="part2-main">
           <svg id="linechart" height="300" width="800" style="margin-top:0px" ></svg>
         </div>
-        <div id="part2-text">
+        <div class="part2-text">
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus a lacus feugiat, laoreet ipsum pharetra, vulputate ligula. Donec dapibus posuere dolor, non pellentesque sem efficitur gravida. In neque urna, mattis non accumsan vitae, euismod eget dolor. Duis bibendum purus sed sodales tristique. Suspendisse faucibus nibh orci, sed rhoncus turpis bibendum ac. Etiam sit amet volutpat neque. Sed auctor luctus tortor. Fusce at posuere est, quis sagittis est. Fusce in ullamcorper nisl. Interdum et malesuada fames ac ante ipsum primis in faucibus.
             In sit amet felis lorem. Curabitur cursus nulla magna. Vivamus a nulla sit amet tortor tincidunt sollicitudin quis aliquam massa. Praesent leo ante, tristique in vestibulum eget, sagittis in metus. Nulla varius nulla et feugiat laoreet. Nunc feugiat sollicitudin sem, non varius ligula. Aliquam sit amet ligula libero. Sed tincidunt diam leo, in porta lorem cursus nec. Aenean faucibus tristique neque vitae egestas. Pellentesque viverra dui ut urna fringilla, non tincidunt felis volutpat. Aliquam erat volutpat. Pellentesque ultrices ut nibh ut facilisis. Aenean in quam nec neque porta condimentum sed sit amet orci.
           </p>
@@ -436,7 +435,7 @@
 
       //add title
       annotations.append('text')
-                .text('Frequency of Hurricanes by Decade')
+                .text('Atlantic Basin Storm Totals by Decade')
                 .attr('x',  (b_chartWidth-margin.right)/2)
                 .attr('y', margin.top)
                 .style("font-size", "15px")
@@ -570,7 +569,7 @@
       const linechart = d3.select('svg#linechart')
       const l_width = linechart.attr("width");
       const l_height = linechart.attr("height");
-      const l_margin = {top: 10, right: 150, bottom: 50, left: 50};
+      const l_margin = {top: 40, right: 150, bottom: 50, left: 50};
       const l_chartWidth = l_width - l_margin.left - l_margin.right;
       const l_chartHeight = l_height - l_margin.top - l_margin.bottom;
       let l_annotations = linechart.append("g").attr("id","annotations");
@@ -585,11 +584,29 @@
       let l_leftAxis = d3.axisLeft(valueScale).ticks(7);
       let l_leftGridlines = d3.axisLeft(valueScale)
                             .tickSize(-l_chartWidth-10)
-                            .tickFormat("").ticks(7)
+                            .tickFormat("").ticks(7);
+
+
+      //add title
+      l_annotations.append('text')
+                .html('La Ni&#241a and El Ni&#241o Intensity vs. Atlantic Basin Storm Frequency')
+                .attr('x',  (b_chartWidth-margin.right)/2)
+                .attr('y', l_margin.top-20)
+                .style("font-size", "15px")
+                .style('font-weight', 'bold')
+
       l_annotations.append("g")
-                .attr("class", "y axis")
+                .attr("class", "yaxis-left")
                 .attr("transform",`translate(${l_margin.left-10},${l_margin.top})`)
                 .call(l_leftAxis);
+      l_annotations.append("text")
+                    .attr("class", "ylabel-left")
+                    .attr("y", 15)
+                    .attr("x", -(l_chartHeight+margin.top)/2) //also hardcoded -20 to center
+                    .attr("transform", "rotate(-90)")
+                    .style("text-anchor", "middle")
+                    .text("Intensity")
+                    .style('font-size', '12px'); 
 
       let l_bottomAxis = d3.axisBottom(l_yearScale).tickFormat(d3.format('.0f')).ticks(40);
       
@@ -623,9 +640,28 @@
                             .tickFormat("");
 
       l_annotations.append("g")
-                .attr("class", "y axis")
+                .attr("class", "yaxis-right")
                 .attr("transform",`translate(${l_chartWidth+l_margin.right-100+10},${l_margin.top})`)
                 .call(l_rightAxis);
+      
+      //get rid of negative ticks on the yxas right
+      let yaxis_right = d3.select('.yaxis-right')
+      yaxis_right.selectAll(".tick")
+        .each(function (d, i) {
+            if (d < 0) {
+                this.remove();
+            }
+      });
+      
+      l_annotations.append("text")
+                    .attr("class", "ylabel-right")
+                    .attr("y", l_chartWidth+margin.right-55)
+                    .attr("x", -(l_chartHeight+margin.top)/2) 
+                    .text("Atlantic Basin Storm Totals")
+                    .attr("transform", "rotate(-90)")
+                    .style("text-anchor", "middle")
+                    .style('font-size', '12px'); 
+      
 
       //populate the chart with bars
       oni_data.forEach(d=>{
@@ -640,16 +676,18 @@
 
       l_chartArea.append('line')
                   .attr("x1", -10)
-                  .attr("x2", l_chartWidth+40)
+                  .attr("x2", l_chartWidth+30)
                   .attr("y1", l_freqScale(d3.mean(hurricane_freq_yearly, d => d.Total)))
                   .attr("y2", l_freqScale(d3.mean(hurricane_freq_yearly, d => d.Total)))
                   .attr("stroke", 'gray')
                   .attr('stroke-width', '2px')
       l_chartArea.append('text')
-                .attr('x',  l_chartWidth+45)
-                .attr('y', l_freqScale(d3.mean(hurricane_freq_yearly, d => d.Total)))
-                .text(`Average: ${d3.format(".1f")(d3.mean(hurricane_freq_yearly, d => d.Total),2)}`)
-                .style("font-size", "11px");
+                .attr('x',  l_chartWidth+50)
+                .attr('y', l_freqScale(d3.mean(hurricane_freq_yearly, d => d.Total))+2)
+                .text(`Avg: ${d3.format(".1f")(d3.mean(hurricane_freq_yearly, d => d.Total),2)}`)
+                .style("font-size", "11px")
+                .style('font-weight', 'bold')
+                .style('fill', 'gray');
 
       //populate the chart with lines 
       let lineGen = d3.line()
@@ -663,6 +701,49 @@
            .attr("stroke", "black")
            .attr("stroke-width", 3)
            .attr("d", lineGen);
+
+
+      //add legend
+      let modificationy = l_margin.top-20;
+      l_annotations.append('rect')
+                .attr('x', 100)
+                .attr('y', 0+modificationy)
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr('stroke', 'red')
+                .attr('fill', 'red');
+      l_annotations.append('text')
+                .html(`La Ni&#241a`)
+                .attr('x',  123)
+                .attr('y', 10+modificationy)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');
+      l_annotations.append('rect')
+                .attr('x', 100)
+                .attr('y', 15+modificationy)
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr('stroke', 'blue')
+                .attr('fill', 'blue');
+      l_annotations.append('text')
+                .html(`El Ni&#241o`)
+                .attr('x',  123)
+                .attr('y', 25+modificationy)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');
+      l_annotations.append('line')
+                  .attr("x1", 95)
+                  .attr("x2", 120)
+                  .attr("y1", 35+modificationy)
+                  .attr("y2", 35+modificationy)
+                  .attr("stroke", 'black')
+                  .attr('stroke-width', '3px');
+      l_annotations.append('text')
+                .html(`Storm Count`)
+                .attr('x',  123)
+                .attr('y', 40+modificationy)
+                .style("font-size", "12px")
+                .style('font-weight', 'bold');      
     }
 
     requestData();
