@@ -4,20 +4,16 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://github.com/1wheel/graph-scroll/blob/gh-pages/graph-scroll.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
 
     <style>
       /* CSS FOR STRUCTURE, TEXT */
         html, body {
             margin: 0;
             padding: 0;
-            /* height: 100%;
-            width: 100%; */
+            width: 100%;
+            height: auto;
         }
 
         body, button {
@@ -28,38 +24,128 @@
           line-height: 1.75;
         }
 
-        #map { 
-            height: 50%;
-            width: 100%; 
-            /* width: 50%; */
+        /* CSS FOR INTRO SECTION */
+        #intro {
+          height: 100vh;
+          width: 100%;
         }
 
-        #sticky-wrapper{
-          position: sticky;
-          top: 0px;
+        #intro-headers {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          text-align: center;
+          color: white;
+          font-style: normal;
+          width: 60%;
+        }
+
+        #intro-headers h1 {
+          font-size: 4em;
+        }
+
+        #intro-headers p {
           padding-top: 2em;
+          color: lightgray;
+          font-size: 0.85em;
         }
 
-        #part1-main{
-          display: flex;
-          flex-direction: row;
+        #intro-vid {
+          height: 100vh;
+          width: 100%;
+          object-fit: cover;
         }
-        
-        #part1-left{
-          height: 1000px;
+
+        /* CSS FOR MAP */
+        #map-container { 
+          height: 100vh;
+          width: 100%; 
+          background-color: white;
+          /* background-color: rgb(233, 233, 233); */
+          position: sticky;
+          top: 0;
+        }
+
+        #map {
+          height: 75%;
+          width: 100%;
+        }
+
+        .boundary {
+          fill: white;
+          stroke: #c3c3c3;
+          stroke-width: 1px;
+        }
+
+        .hexagons path {
+          shape-rendering: optimizeSpeed;
+        }
+
+        .hidden {
+          opacity: 0;
+          transition: opacity 0.5s ease;
+        }
+
+        .visible {
+          opacity: 1;
+          transition: opacity 1s ease;
+        }
+
+        /* CSS FOR MAP LEGEND */
+
+        #legend-container {
+          height: 4%;
+          width: 100%;
+          background-color: white;
+          padding-top: 0.15em;
+          /* margin-bottom: 2em; */
+        }
+
+        #legend {
+          height: 20%;
+          width: 99%;
+        }
+
+        #legend-labels {
           display: flex;
+          justify-content: space-between;
+          padding: 0 2px 0 5px;
+          font-size: 0.85em;
+          color: gray;
+        }
+      
+        /* CSS FOR SCROLLED COMPONENTS */
+        #everything_belowintro{
+          position: relative;
+          width: 100%;
+          background-color: white;
+        }
+
+        .popup {
+          background-color: rgba(255, 255, 255, 0.812);
+          padding: 1em;
+        }
+
+        #part1-left{
+          height: 3000px;
+          /* display: flex; */
           /* flex-direction: row; */
-          flex-direction: column;
-          padding-top: 1em;
-          width: 50%;
+          /* flex-direction: column; */
+          width: 100%;
+          /* position: sticky;
+          top: 0px; */
         }
 
         #part1-right{
-          width: 50%;
+          width: 100%;
           text-align: center;
-
         }
 
+        #barchart {
+          width: 100%;
+        }
+        
         #barchart_div{
           /* width: 50%; */
           text-align: center;
@@ -69,22 +155,26 @@
           margin-top: 10px;
         }
 
-        .part1, #part2-text{
-          width: 80%;
+        #part2-text{
+          width: 50%;
           margin: 0 auto;
           text-align: center;
           margin-bottom: 10px;
         }
 
-        #part2{
-          position: relative;
-          margin-top:2000px;
-          background-color: white;
+        #part2-text{
+          /* how much space do you need between the last bar annotation and part 2 */
+          margin-top: 150px;
+        }
+
+        #part2 {
+          position: absolute;
+          top: 0; 
+          left: 50%;
+          transform: translateX(-50%);
+          /* background-color: rgba(255, 255, 255, 0.517); */
           z-index: 2;
           width: 50%;
-          margin-left:50%;
-          padding-top: 10px;
-          
         }
 
         #part2-main{
@@ -101,171 +191,221 @@
         }
         
         .gridlines line {
-          stroke: #444;
+          stroke: #d5d5d5;
         }
 
         .scrolled {
-          stroke-width:3;
+          stroke-width:2;
           stroke:rgb(0,0,0)
-        }
-
-        .hideAnnotation{
-          display: none;
-          /* max-height: 0px; */
         }
     </style>
   </head>
 
   <body>
     <main>
-      <div class="part1">
-        <h1>The Effects of Warming Ocean Temperatures and La Ni&#241a on the 2024 East Coast Hurricane Season</h1>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus a lacus feugiat, laoreet ipsum pharetra, vulputate ligula. Donec dapibus posuere dolor, non pellentesque sem efficitur gravida. In neque urna, mattis non accumsan vitae, euismod eget dolor. Duis bibendum purus sed sodales tristique. Suspendisse faucibus nibh orci, sed rhoncus turpis bibendum ac. Etiam sit amet volutpat neque. Sed auctor luctus tortor. Fusce at posuere est, quis sagittis est. Fusce in ullamcorper nisl. Interdum et malesuada fames ac ante ipsum primis in faucibus.
-          In sit amet felis lorem. Curabitur cursus nulla magna. Vivamus a nulla sit amet tortor tincidunt sollicitudin quis aliquam massa. Praesent leo ante, tristique in vestibulum eget, sagittis in metus. Nulla varius nulla et feugiat laoreet. Nunc feugiat sollicitudin sem, non varius ligula. Aliquam sit amet ligula libero. Sed tincidunt diam leo, in porta lorem cursus nec. Aenean faucibus tristique neque vitae egestas. Pellentesque viverra dui ut urna fringilla, non tincidunt felis volutpat. Aliquam erat volutpat. Pellentesque ultrices ut nibh ut facilisis. Aenean in quam nec neque porta condimentum sed sit amet orci.
-        </p>
+      <div id="intro" class="part1">
+        <div id="intro-headers">
+          <h1>"An Out-of-Bounds Anomaly"</h1>
+          <h2>Unprecedented ocean heat, the approach of La Ni&#241a, and 2024's hurricane season</h2>
+          <p>Visualization made by Mary Kolbas and Tammy Zhang</p>
+        </div>
+        <video id="intro-vid" src="cover-vid.mp4" muted autoplay loop></video>
       </div>
-      <div id="sticky-wrapper">
-        <h2 class="part1">Rising Ocean Temperatures and Tropical Cyclone Frequency/Intensity</h2>
-        <div id="part1-main">
-          <div id="part1-left">
-            <div id="map"></div>
+      <div id="everything_belowintro">
+        <div id="part1-left">
+          <div id="map-container" class="hidden">
+            <div id="legend-container">
+              <div id="legend-labels">
+                <span id="min-value">-2&deg;F</span>
+                <span id="mid-value">Sea Surface Temperature Divergence from 1971-2000 Average</span>
+                <span id="max-value">2&deg;F</span>
+              </div>
+              <svg id="legend"></svg>
+            </div>
+            <svg id="map"></svg>
             <div id="barchart_div">
-              <svg id="barchart" height="500" width="750" style="margin-top:0px" >
+              <svg id="barchart" height="160" width="1500" style="margin-top:0px" >
               </svg>
             </div>
-          </div> <!--close part1-left (flexbox columns)-->
-          <div id="part1-right">
-            <h2 id="annotation-title"></h2>
-            <p id="annotation-text"></p>
           </div>
-        </div> <!--close part1-main (flexbox rows)-->
-      </div> <!--close wrapper (sticky)-->
+        </div>
       <div id="part2">
-        <div id="part2-text">
-          <h2>La Ni&#241a Season Approaches...</h2>
-          <p style="font-style: italic;">
-            "NOAA's most recent forecasts predict 80% chance of La Nina conditions during this year's hurricane season + in combination with record-breaking ocean temps, this hurricane season is highly likely to be unprecedented."
-          </p>
-          <p> 
-            La Ni&#241a refers to the periodic cooling of ocean surface temperatures in the central and east-central equatorial Pacific. This weakens vertical wind sheer and trade winds in the 
-            Atlantic, where tropical storms and hurricanes that hit the eastern United States develop. Less atmospheric stability means that the east coast experiences more hurricanes during La Ni&#241a 
-            than during El Ni&#241o.
-            
-          </p>
-        </div>
-        <div id="part2-main">
-          <svg id="linechart" height="300" width="800" style="margin-top:0px" ></svg>
-        </div>
-        <div id="part2-text">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus a lacus feugiat, laoreet ipsum pharetra, vulputate ligula. Donec dapibus posuere dolor, non pellentesque sem efficitur gravida. In neque urna, mattis non accumsan vitae, euismod eget dolor. Duis bibendum purus sed sodales tristique. Suspendisse faucibus nibh orci, sed rhoncus turpis bibendum ac. Etiam sit amet volutpat neque. Sed auctor luctus tortor. Fusce at posuere est, quis sagittis est. Fusce in ullamcorper nisl. Interdum et malesuada fames ac ante ipsum primis in faucibus.
-            In sit amet felis lorem. Curabitur cursus nulla magna. Vivamus a nulla sit amet tortor tincidunt sollicitudin quis aliquam massa. Praesent leo ante, tristique in vestibulum eget, sagittis in metus. Nulla varius nulla et feugiat laoreet. Nunc feugiat sollicitudin sem, non varius ligula. Aliquam sit amet ligula libero. Sed tincidunt diam leo, in porta lorem cursus nec. Aenean faucibus tristique neque vitae egestas. Pellentesque viverra dui ut urna fringilla, non tincidunt felis volutpat. Aliquam erat volutpat. Pellentesque ultrices ut nibh ut facilisis. Aenean in quam nec neque porta condimentum sed sit amet orci.
-          </p>
+        <div id="part1-right"> 
         </div>
       </div>
+    </div> <!--close everything_belowintro-->
+    <div id="part2-text">
+      <h2>La Ni&#241a Season Approaches...</h2>
+      <p style="font-style: italic;">
+        "NOAA's most recent forecasts predict 80% chance of La Nina conditions during this year's hurricane season + in combination with record-breaking ocean temps, this hurricane season is highly likely to be unprecedented."
+      </p>
+      <p> 
+        La Ni&#241a refers to the periodic cooling of ocean surface temperatures in the central and east-central equatorial Pacific. This weakens vertical wind sheer and trade winds in the 
+        Atlantic, where tropical storms and hurricanes that hit the eastern United States develop. Less atmospheric stability means that the east coast experiences more hurricanes during La Ni&#241a 
+        than during El Ni&#241o.
+      </p>
+    </div>
+    <div id="part2-main">
+      <svg id="linechart" height="300" width="800" style="margin-top:0px" ></svg>
+    </div>
+    <div id="part2-text">
+      
+    </div>
     </main>
   </body>
 
   <script>
-    // Leaflet setup
-    var map = L.map('map', { zoomControl: false, scrollWheelZoom: false, dragging: false, zoomSnap: 0.2 }).setView([20, -58], 3.6);
+    // handling map
+    const mapSVG = d3.select("#map");
+    const mapContainer = d3.select("#map-container");
 
-    var CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
-    });
-    CartoDB_Positron.addTo(map);
+    mapSVG.attr("width", mapContainer.node().offsetWidth);
+    mapSVG.attr("height", mapContainer.node().offsetHeight);
+    const mapWidth = mapSVG.attr("width");
+    const mapHeight = mapSVG.attr("height");
+    const map = mapSVG.append("g");
 
-    // fetch('ssta.geojson')
-    //         .then(response => response.json())
-    //         .then(data => {
-    //           var sstaValues = data.features.map(function(feature) {
-    //               return feature.properties.ssta;
-    //           });
-    //           var extent = d3.extent(sstaValues);
+    // setting up legend
+    const legendSVG = d3.select("#legend");
+    const legendContainer = d3.select("#legend-container");
 
-    //           var colorScale = d3.scaleLinear()
-    //             .domain(extent)
-    //             .range(["#0006b5", "#ff3617"]);
+    // const stickyBg = d3.select("#part1-left");
 
-    //           function getColor(propertyValue) {
-    //             if (propertyValue == "") {
-    //               return 'transparent';
-    //             } else {
-    //               return colorScale(propertyValue);
-    //             }
-    //           }
+    legendSVG.attr("width", legendContainer.node().offsetWidth);
+    legendSVG.attr("height", legendContainer.node().offsetHeight);
+    var legendWidth = legendSVG.attr("width");
+    var legendHeight = legendSVG.attr("height");
 
-    //           L.geoJSON(data, {
-    //                 pointToLayer: function (feature, latlng) {
-    //                     return L.circleMarker(latlng, {
-    //                         fillColor: getColor(feature.properties.ssta), 
-    //                         weight: 0,
-    //                         radius: 2,
-    //                         fillOpacity: 0.3
-    //                     });
-    //                 }
-    //             }).addTo(map);
-    //         });
+    var legendMargin = { top: 2, right: 10, bottom: 10, left: 10 };
+    var legendX = legendMargin.left;
+    var legendY = legendMargin.top;
 
-    let geojsonLayer;
-    const refreshMap = async function (decade) {
-      const geoData = await d3.json('ssta_aggregate.geojson');
+    // creating linear gradient
+    var defs = legendSVG.append("defs");
+    var linearGradient = defs.append("linearGradient")
+        .attr("id", "legendGradient")
+        .attr("x1", "100%")
+        .attr("y1", "0%")
+        .attr("x2", "0%")
+        .attr("y2", "0%");
 
-      if (decade < 0) {
-        decade = 0;
-      }
+    let geoData;
+    let hexagons;
+    let colorScale;
+    let extent;
 
-      if (decade > 17) {
-        decade = 17;
-      }
+    const requestMap = async function() {
+      const world = await d3.json("map.json");
 
-    if (geojsonLayer) {
-      map.removeLayer(geojsonLayer);
+      var boundaries = topojson.feature(world, world.objects.croppedmap);
+
+      var projection = d3.geoMercator()
+        .fitSize([mapWidth, mapHeight], boundaries);
+
+      var path = d3.geoPath().projection(projection);
+
+      // rescaling projection to better fit width of container
+      const bounds = path.bounds(boundaries);
+      const boundingBoxHeight = bounds[1][1] - bounds[0][1];
+      const scaleFactor = mapWidth / (bounds[1][0] - bounds[0][0]);
+
+      const newScale = projection.scale() * scaleFactor;
+      const newHeight = boundingBoxHeight * scaleFactor;
+  
+      projection.scale(newScale)
+
+      map.attr("transform", `translate(${330}, ${100})`);
+
+      // loading in sea surface temp anomaly data
+      geoData = await d3.json('ssta_aggregate.geojson');
+      const filteredData = geoData.features.filter(feature => feature.properties.ssta[0] !== "");
+      filteredData.forEach( d => {
+        d.position = projection( [d.geometry.coordinates[0], d.geometry.coordinates[1]] );
+      });
+
+      // creating hex grid
+      const hexbin = d3.hexbin()
+          .x(d => d.position[0])
+          .y(d => d.position[1])
+          .radius(29)
+          .size([mapWidth, mapHeight]);
+
+      const bins = hexbin(filteredData);
+
+      const sstaValues = geoData.features.flatMap(feature => feature.properties.ssta);
+      extent = d3.extent(sstaValues);
+
+      colorScale = d3.scaleDiverging().domain([-extent[0], 0, extent[0]]).interpolator(d3.interpolateRdBu);
+
+      hexagons = map.append("g").attr("class", "hexagons")
+          .selectAll("path")
+          .data(bins)
+          .enter().append("path")
+          .attr("transform", d => `translate(${d.x},${d.y})`)
+          .attr("d", hexbin.hexagon())
+          .attr("fill", bin => colorScale(d3.mean(bin, d => d.properties.ssta[0])))
+          .lower();
+
+      // adding map boundaries
+      map.append("g")
+        .selectAll("path.boundary").data(boundaries.features)
+        .join("path")
+        .attr("class", "boundary")
+        .attr("d", path)
+        .raise(); 
+
+      // creating legend
+      linearGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", colorScale(-extent[0])); 
+      linearGradient.append("stop")
+        .attr("offset", "12.5%")
+        .attr("stop-color", colorScale(-3 * extent[0] / 4));
+      linearGradient.append("stop")
+        .attr("offset", "25%")
+        .attr("stop-color", colorScale(-extent[0] / 2)); 
+      linearGradient.append("stop")
+        .attr("offset", "37.5%")
+        .attr("stop-color", colorScale(-extent[0] / 4));
+      linearGradient.append("stop")
+        .attr("offset", "50%")
+        .attr("stop-color", "white"); 
+      linearGradient.append("stop")
+        .attr("offset", "62.5%")
+        .attr("stop-color", colorScale(extent[0] / 4));
+      linearGradient.append("stop")
+        .attr("offset", "75%")
+        .attr("stop-color", colorScale(extent[0] / 2)); 
+      linearGradient.append("stop")
+        .attr("offset", "87.5%")
+        .attr("stop-color", colorScale(3 * extent[0] / 4));
+      linearGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", colorScale(extent[0]));
+
+      // applying gradient
+      var legend = legendSVG.append("rect")
+        .attr("x", legendX)
+        .attr("y", legendY)
+        .attr("width", legendWidth)
+        .attr("height", legendHeight)
+        .style("fill", "url(#legendGradient)");
     }
+    requestMap();
 
-    // var sstaValues = geoData.features.map(function(feature) {
-    //     return feature.properties.ssta[decade];
-    // });
-
-    const sstaValues = geoData.features.flatMap(feature => feature.properties.ssta);
-    var extent = d3.extent(sstaValues);
-
-    // var colorScale = d3.scaleLinear()
-    //   .domain(extent)
-    //   .range(["#0006b5", "#ff3617"]);
-
-    // console.log(geoData.features[0].properties.ssta)
-
-    var colorScale = d3.scaleSequential().interpolator(d3.interpolateRdBu).domain(extent.reverse())
-
-    function getColor(propertyValue) {
-      if (!propertyValue) {
-        return 'transparent';
-      } else {
-        return colorScale(propertyValue);
+    const updateMap = (decade) => {
+      decade = Math.max(0, Math.min(17, decade));
+      if (hexagons) {
+        hexagons.transition().duration(50)
+        .attr("fill", bin => colorScale(d3.mean(bin, d => d.properties.ssta[decade])));
       }
-    }
+    };
 
-    geojsonLayer = L.geoJSON(geoData, {
-          pointToLayer: function (feature, latlng) {
-              return L.circleMarker(latlng, {
-                  fillColor: getColor(feature.properties.ssta[decade]), 
-                  weight: 0,
-                  radius: 4,
-                  fillOpacity: 1
-              });
-          }
-      }).addTo(map);
-    }
-
-    refreshMap(0);
-
+    // generating bar charts and scroll functionality
     const requestData = async function() {
       const hurricane_frequency = await d3.csv("hf_decade_avg.csv", d3.autoType);
 
       // Set up the bar chart 
-      console.log(hurricane_frequency)
       const bar_svg = d3.select("svg#barchart");
       const b_width = bar_svg.attr("width");
       const b_height = bar_svg.attr("height");
@@ -301,9 +441,9 @@
                 .call(bottomAxis)
                 .selectAll("text")
                 .attr("y", 12)
-                .attr("x", -10)
-                .attr("transform", "rotate(-45)")
-                .style("text-anchor", "end");
+                .attr("x", 0)
+                // .attr("transform", "rotate(-45)")
+                // .style("text-anchor", "center");
 
       let subgroups = hurricane_frequency.columns.slice(1);
       let colorScale = d3.scaleOrdinal()
@@ -312,7 +452,7 @@
 
       let stackedData = d3.stack()
                           .keys(subgroups)(hurricane_frequency);
-      console.log(stackedData)
+   
       chartArea.append("g")
           .selectAll("g")
           .attr("transform",`translate(${margin.left},${b_chartHeight+margin.top+10})`)
@@ -330,14 +470,14 @@
               .attr("width", yearScale.bandwidth())
               .attr("id", d=>`year${d.data.Year}`)
 
-      //add titl
+      //add title
       annotations.append('text')
                 .text('Frequency of Hurricanes by Decade')
                 .attr('x',  (b_chartWidth-margin.right)/2)
                 .attr('y', margin.top)
                 .style("font-size", "15px")
                 .style('font-weight', 'bold')
-                // .style("text-anchor", "middle");
+
       //add legend
       annotations.append('rect')
                 .attr('x', b_chartWidth+margin.right*(2/3)-25)
@@ -379,17 +519,21 @@
                 .style("font-size", "12px")
                 .style('font-weight', 'bold');
 
-
       //list of all my annotations i want to display
-      // let textpopups = {1:['Template callout'], 
-      //   6:['The 1910s saw a decrease in hurricane frequency,', "though 4 of the top 15 most deadly", 'Mainland U.S tropical cyclones are from this decade.'], 
-      //   13:['After the 1980s, the increase in average ocean', 'temperatures has consistently been above' ,'the century average.']}
-      let textpopups = {1:['Title1', 'Template callout'], 
-        6:['Title2', 'The 1910s saw a decrease in hurricane frequency, though 4 of the top 15 most deadly Mainland U.S tropical cyclones are from this decade.'], 
-        13:['Title3', 'After the 1980s, the increase in average ocean temperatures has consistently been above the century average.']}
+      let textpopups = {1:['CALLOUT BAR 1', 'Template callout'], 
+        6:['Title2 (BAR 6)', 'The 1910s saw a decrease in hurricane frequency, though 4 of the top 15 most deadly Mainland U.S tropical cyclones are from this decade.'], 
+        13:['Title3 (BAR 13)', 'After the 1980s, the increase in average ocean temperatures has consistently been above the century average.']}
 
-      //mapping of year to "bar-number" bc im stupid. 
-      // like i have the barchart IDs as year1850 but the scroll works based on bar-number so. this is my solution
+      let prev_t = 0
+      for(t in textpopups){
+        d3.select('#part1-right').append('div').attr('id', `popup${t}`).style('margin-top', (t-prev_t)*100-50).attr('class', 'popup')
+        // above creates margin based on distance from prev popup, also removing 50 pixels for how long the prev text probably was
+        current_popup = d3.select(`#popup${t}`)
+        current_popup.append('h2').text(textpopups[t][0])
+        current_popup.append('p').text(textpopups[t][1])
+        prev_t=t //keep track of previous t so the margins dont get too big
+      }
+
       let yearBarMapping = {}
       let yearCounter = 1850;
       let i=0;
@@ -407,33 +551,20 @@
         window.scrollTo(0, 200); //bring user back to the top
       };
 
-      //create a function to update the annotation box of the bar chart
-      function annotationUpdate(barNumber, annotationText){
-        console.log('in here', annotationText)
-        d3.select('#annotation-title').text(annotationText[0]).attr("class", "");
-        d3.select('#annotation-text').text(annotationText[1]).attr("class", "");
-      }
+      let introOffset = d3.select("#intro").node().offsetHeight;
 
       window.addEventListener('scroll', function() {
-        var scrolled = window.scrollY;
-        // console.log(scrolled)
+        var scrolled = window.scrollY - introOffset;
 
-        //can adjust this
+        //can adjust this. if you change this, change for t in textpopups section
         bar_number = Math.floor((scrolled-250)/100);
 
-
-        if (0 < bar_number < 17) {
-          refreshMap(bar_number)
-        } 
-        
-        if (bar_number < 0) {
-          refreshMap(0);
-        } 
-        
-        if (bar_number > 17) {
-          refreshMap(17);
+        // checking if map is in view
+        if (window.scrollY >= introOffset) {
+          mapContainer.classed('visible', true);
+        } else {
+          mapContainer.classed('visible', false);
         }
-    
         
         d3.selectAll(`rect`).attr('class', '')
         let current_year = years[bar_number]
@@ -441,30 +572,12 @@
         let current_bars = chartArea.selectAll(`#year${current_year}`)
         current_bars.attr('class', 'scrolled')
 
-        if(bar_number in textpopups){
-          annotationUpdate(bar_number, textpopups[bar_number])
-        }
-        else{
-          d3.select('#annotation-title').attr("class", "hideAnnotation");
-          d3.select('#annotation-text').attr("class", "hideAnnotation");
-        }
-
-        //dynamically add more pixels to the page -- DON'T REALLY NEED THIS IF YOU HAVE window.scrollTo(0, BIG NUMBER) ON LOAD!
-        // var content = d3.select('main');
-        // if (scrolled === 0) {
-        //   content.style('height', content.node().offsetHeight + 2 + 'px');
-        //   window.scrollBy(0, 1); // Scroll down slightly to prevent immediate recall
-        // } else if (scrolled + window.innerHeight >= content.node().offsetHeight) {
-        //   content.style('height', content.node().offsetHeight + 2 + 'px'); 
-        // }
-        // lastScrollPosition = scrolled;
+        updateMap(bar_number);
       });   
       
       // PART 2
       const oni_data = await d3.csv("oni.csv", d3.autoType);
       const hurricane_freq_yearly = await d3.csv("hurricane_frequency_cut.csv", d3.autoType);
-      console.log(hurricane_freq_yearly)
-
       //set up bars
       const linechart = d3.select('svg#linechart')
       const l_width = linechart.attr("width");
