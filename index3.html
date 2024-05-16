@@ -172,14 +172,14 @@
           margin-top: 10px;
         }
 
-        #part2-text{
+        #part2-text, #part2-text2{
           width: 50%;
           margin: 0 auto;
           /* text-align: center; */
-          margin-bottom: 10px;
+          margin-bottom: 2em;
         }
 
-        #part2-text2{
+        #part2-text3{
           width: 50%;
           margin: 0 auto;
           /* text-align: center; */
@@ -277,6 +277,11 @@
       </div>
     </div> <!--close everything_belowintro-->
     <div id="part2-text">
+      <h2>What's causing record ocean temperatures?</h2>
+      <p>There's a number of different factors that scientists have speculated are driving these warmer waters - including El Ni&#241o (a recurring climate pattern often associated with warmer conditions in many regions), new international laws reducing shipping pollution inadvertently causing less sunlight to be blocked from the Earth, and the 2022 Tonga volcano eruption adding tens of millions of tons of water vapor into the atmosphere.</p>
+      <p>However, experts agree that the primary factor remains climate change, with the oceans being estimated to have absorbed about 90% of human-driven warming in the last 150 years. Dr. Zeke Hausfather, a climate scientist at Berkeley Earth, expressed: "The level of warmth we are seeing today is only possible because of the warming over the past 150 years due to human activity."</p>
+    </div>
+    <div id="part2-text2">
       <h2>Another factor contributing to hurricanes this year: La Ni&#241a.</h2>
       <p> 
         La Ni&#241a refers to the periodic cooling of ocean surface temperatures in the central and east-central equatorial Pacific. This cooling weakens vertical wind shear and trade winds in the 
@@ -286,12 +291,11 @@
       <p>
         Furthermore, Dr. Phil Klotzbach, a researcher at Colorado State University, stated that La Ni&#241a years tend to see an increase in hurricanes forming in the western side of the development zone, increasing the chances that a storm makes landfall and therefore increasing the risks to coastal areas.
       </p>
-     
     </div>
     <div id="part2-main">
       <svg id="linechart" height="300" width="800" style="margin-top:0px" ></svg>
     </div>
-    <div id="part2-text2">
+    <div id="part2-text3">
       <p>
         Since June of last year, the Earth has been experiencing an El Ni&#241o event in which warmer Pacific ocean temperatures have created conditions that have helped surpress hurricanes. However, the National Oceanic and Atmospheric Administration (NOAA) has announced this past April that El Ni&#241o has weakened, with La Ni&#241a conditions having an almost 70% chance of occurring during 2024's Atlantic hurricane season (running from June 1 to November 30). 
       </p>
@@ -630,19 +634,11 @@
         bar_number = Math.floor((scrolled-250)/100);
 
         // checking if map is in view
-        console.log(window.scrollY)
-        console.log(d3.select("#part1-left").node().offsetHeight)
         if (window.scrollY >= introOffset && window.scrollY <= d3.select("#part1-left").node().offsetHeight + introOffset - third) {
           mapContainer.classed('visible', true);
         } else {
           mapContainer.classed('visible', false);
         }
-
-        // if (mapContainer.node().getBoundingClientRect().bottom <= topFourth) {
-        //   mapContainer.classed('visible', false);
-        // } else {
-        //   mapContainer.classed('visible', true);
-        // }
 
         // checking if text boxes are in view
         var textBoxes = d3.selectAll('.popup-text-container');
