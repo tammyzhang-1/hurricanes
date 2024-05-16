@@ -522,9 +522,20 @@
                 .style('font-weight', 'bold');
 
       //list of all my annotations i want to display
-      let textpopups = {1:['CALLOUT BAR 1', 'Template callout'], 
-        6:['Title2 (BAR 6)', 'The 1910s saw a decrease in hurricane frequency, though 4 of the top 15 most deadly Mainland U.S tropical cyclones are from this decade.'], 
-        13:['Title3 (BAR 13)', 'After the 1980s, the increase in average ocean temperatures has consistently been above the century average.']}
+      let textpopups = {
+        1:['A set of atmospheric science experts have stated this past April that all early forecasts this year point to the approach of a record-breaking hurricane season.',
+          'What are some of the signs?'],
+        3:['Welcome to the Main Development Region.', 
+          'This span of the Atlantic Ocean between Africa and the Caribbean islands represents a critical area for hurricane formation. Continue scrolling to see changes in sea surface temperature anomalies across the decades.'], 
+        4:['', 
+          'Sea surface temperatures in this region are known to affect the hurricane season, with warmer waters providing more energy that serve as the driving force behind Atlantic storms.'], 
+        6:['', 
+          'For example, the 1910s, a decade with cooler temperatures than average, saw a decrease in hurricane frequency - although 4 of the top 15 most deadly mainland U.S tropical cyclones are still from this decade.'], 
+        13:['In recent decades, the change in sea surface temperatures has been dramatic.', 
+          'Although temperatures have been gradually increasing over the course of the past century, the increase in average ocean temperatures after the 1980s has been of particular concern to climate scientists due to their extremely rapid rate of change. Accordingly, these recent decades have seen growing numbers of tropical storm events, with the 2020s already having the highest average yearly rate of Atlantic basin storms of any decade since at least 1850.' ],
+        16:["In 2024, the Main Development Region's surface temperatures are already the warmest they've been in recent history.", 
+            'Benjamin Kirtman, a professor of atmospheric sciences at the University of Miami, described these abnormally warm conditions as "unprecedented" and "alarming" - "an out-of-bounds anomaly."']
+      }
 
       let prev_t = 0
       for(t in textpopups){
