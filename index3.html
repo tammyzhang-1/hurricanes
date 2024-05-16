@@ -45,10 +45,14 @@
           font-size: 4em;
         }
 
-        #intro-headers p {
+        #about {
           padding-top: 2em;
           color: lightgray;
           font-size: 0.85em;
+        }
+
+        #about p {
+          margin: 0;
         }
 
         #intro-vid {
@@ -183,7 +187,29 @@
           width: 50%;
           margin: 0 auto;
           /* text-align: center; */
+          /* padding-bottom: 3em; */
+        }
+
+        #end {
+          width: 50%;
+          margin: 0 auto 2em auto;
           padding-bottom: 3em;
+          font-size: 0.85em;
+          color: rgb(78, 78, 78);
+        }
+
+        #end a {
+          color: rgb(78, 78, 78);
+        }
+
+        #end ul {
+          padding-left: 1em;
+        }
+
+        #part2-text3 :last-child {
+          padding-bottom: 2em;
+          border-bottom: 1px solid;
+          border-image: linear-gradient(to right, #737373 30%, transparent 30%) 100% 1;
         }
 
         #part2-text{
@@ -233,7 +259,10 @@
         <div id="intro-headers">
           <h1>"An Out-of-Bounds Anomaly"</h1>
           <h2>Unprecedented ocean heat, the approach of La Ni&#241a, and 2024's hurricane season</h2>
-          <p>Visualization made by Mary Kolbas and Tammy Zhang</p>
+          <div id="about">
+            <p>Visualization made by Mary Kolbas and Tammy Zhang</p>
+            <p>May 16, 2024</p>
+          </div>
         </div>
         <svg id = "arrow">
           <path d = "M0 0 L20 20 L40 0" opacity = "0">
@@ -299,6 +328,20 @@
       <p>
         Since June of last year, the Earth has been experiencing an El Ni&#241o event in which warmer Pacific ocean temperatures have created conditions that have helped surpress hurricanes. However, the National Oceanic and Atmospheric Administration (NOAA) has announced this past April that El Ni&#241o has weakened, with La Ni&#241a conditions having an almost 70% chance of occurring during 2024's Atlantic hurricane season (running from June 1 to November 30). 
       </p>
+      <p>
+        Looking ahead to 2024's approaching hurricane season, it's important to keep in mind that forecasts made this early in the year aren't always the most accurate. However, it's reasonable to expect that this season is more than likely to be one of the most active on record.
+      </p>
+      <p>Dr. Gregory Johnson, an oceanographer at the National Oceanic and Atmospheric Administration, noted: "The ocean has been doing us a big service by delaying global warming considerably - but it comes at a cost."</p>
+    </div>
+    <div id="end">
+      Sources: 
+      <ul>
+        <li><a href="https://www.nhc.noaa.gov/climo/images/AtlanticStormTotalsTable.pdf">NOAA's Atlantic Storm Totals Dataset</a></li>
+        <li><a href="https://www.ncei.noaa.gov/products/extended-reconstructed-sst">NOAA's Extended Reconstructed Sea Surface Temperature (ERSST) Dataset</a></li>
+        <li><a href="https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php">NOAA's Oceanic Ni&#241o Index (ONI) Dataset</a></li>
+        <li><a href="https://www.nytimes.com/2024/04/04/climate/ocean-temperature-hurricane-forecast.html">'Alarming' Ocean Temperatures Suggest This Hurricane Season Will Be a Daunting One - The New York Times</a></li>
+        <li><a href="https://www.nytimes.com/interactive/2023/08/03/climate/ocean-temperatures-heat-earth.html?pgtype=Article&action=click&module=RelatedLinks">What This Year's 'Astonishing' Ocean Heat Means for the Planet - The New York Times</a></li>
+      </ul>
     </div>
     </main>
   </body>
@@ -615,12 +658,6 @@
                     
       // Bar chart highlights based on scroll
       let lastScrollPosition = 0;
-
-      // window.onload = function() {
-      //   window.scrollTo(0, 5000); //automatically make the page really long, this helps with smoother scrolling
-      //   window.scrollTo(0, 200); //bring user back to the top
-      // };
-
 
       window.addEventListener('scroll', function() {
         var scrolled = window.scrollY - introOffset;
