@@ -707,7 +707,18 @@
         });
         
         d3.selectAll(`rect`).attr('class', '')
+
+        if (bar_number < 0) {
+          bar_number = 0;
+        }
+
+        if (bar_number > 17) {
+          bar_number = 17;
+        }
+
         let current_year = years[bar_number]
+
+        console.log(bar_number)
 
         let current_bars = chartArea.selectAll(`#year${current_year}`)
         current_bars.attr('class', 'scrolled')
