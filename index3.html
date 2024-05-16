@@ -620,9 +620,10 @@
       //add title
       l_annotations.append('text')
                 .html('La Ni&#241a and El Ni&#241o Intensity vs. Atlantic Basin Storm Frequency')
-                .attr('x',  (l_chartWidth-margin.right)/2)
+                .attr('x',  (l_chartWidth/2-margin.right))
                 .attr('y', l_margin.top-20)
                 .style("font-size", "15px")
+                // .style("text-anchor", "middle")
                 .style('font-weight', 'bold')
 
       l_annotations.append("g")
@@ -734,9 +735,10 @@
 
 
       //add legend
-      let modificationy = l_margin.top-20;
+      let modificationx = 10;
+      let modificationy = l_margin.top-10;
       l_annotations.append('rect')
-                .attr('x', 100)
+                .attr('x', 100+modificationx)
                 .attr('y', 0+modificationy)
                 .attr('width', 10)
                 .attr('height', 10)
@@ -744,12 +746,12 @@
                 .attr('fill', 'red');
       l_annotations.append('text')
                 .html(`La Ni&#241a`)
-                .attr('x',  123)
+                .attr('x',  123+modificationx)
                 .attr('y', 10+modificationy)
                 .style("font-size", "12px")
                 .style('font-weight', 'bold');
       l_annotations.append('rect')
-                .attr('x', 100)
+                .attr('x', 100+modificationx)
                 .attr('y', 15+modificationy)
                 .attr('width', 10)
                 .attr('height', 10)
@@ -757,20 +759,20 @@
                 .attr('fill', 'blue');
       l_annotations.append('text')
                 .html(`El Ni&#241o`)
-                .attr('x',  123)
+                .attr('x',  123+modificationx)
                 .attr('y', 25+modificationy)
                 .style("font-size", "12px")
                 .style('font-weight', 'bold');
       l_annotations.append('line')
-                  .attr("x1", 95)
-                  .attr("x2", 120)
+                  .attr("x1", 95+modificationx)
+                  .attr("x2", 120+modificationx)
                   .attr("y1", 35+modificationy)
                   .attr("y2", 35+modificationy)
                   .attr("stroke", 'black')
                   .attr('stroke-width', '3px');
       l_annotations.append('text')
                 .html(`Storm Count`)
-                .attr('x',  123)
+                .attr('x',  123+modificationx)
                 .attr('y', 40+modificationy)
                 .style("font-size", "12px")
                 .style('font-weight', 'bold');      
