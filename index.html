@@ -24,6 +24,10 @@
           line-height: 1.75;
         }
 
+        .popup p {
+          font-size: 1.15em;
+        }
+
         /* CSS FOR INTRO SECTION */
         #intro {
           height: 100vh;
@@ -165,13 +169,45 @@
 
         #barchart {
           width: 100%;
+          height: 100%;
         }
         
         #barchart_div{
           /* width: 50%; */
           text-align: center;
+          width: 100%;
+          height: 21%;
+          display: flex;
         }
 
+        #barchart-legend {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          transform: translateY(-10px);
+          width: 175px;
+          gap: 0.5em;
+        }
+
+        #barchart-legend-row {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          gap: 0.5em;
+        }
+
+        .legend-box {
+          width: 20px;
+          height: 20px;
+
+        }
+
+        .legend-text {
+          font-size: 0.85em;
+          font-weight: bold;
+          white-space: nowrap;
+        }
+      
         h1{
           margin-top: 10px;
         }
@@ -236,6 +272,12 @@
           padding-bottom: 2em;
         }
 
+        #linechart-container {
+          width: 60%;
+          height: 300px;
+          padding-left: 3em;
+        }
+
       /* CSS FOR D3 VISUALIZATIONS */
 
         .gridlines .domain {
@@ -243,12 +285,26 @@
         }
         
         .gridlines line {
-          stroke: #d5d5d5;
+          stroke: #dfdfdf;
         }
 
         .scrolled {
           stroke-width:2;
           stroke:rgb(0,0,0)
+        }
+
+        @media (max-width: 1180px) {
+          #intro-headers {
+            width: 80%;
+          }
+
+          #part2, #part2-text, #part2-text2, #part2-text3, #end {
+            width: 70%;
+          }
+
+          #linechart-container {
+            width: 80%;
+          }
         }
     </style>
   </head>
@@ -295,8 +351,21 @@
             </div>
             <svg id="map"></svg>
             <div id="barchart_div">
-              <svg id="barchart" height="160" width="1500" style="margin-top:0px" >
+              <svg id="barchart" style="margin-top:0px" >
               </svg>
+              <div id="barchart-legend">
+                <div id="barchart-legend-row">
+                  <div class="legend-box" style="background-color: #e41a1c;"></div>
+                  <span class="legend-text">Tropical Storms</span>
+                </div>
+                <div id="barchart-legend-row">
+                  <div class="legend-box" style="background-color: #377eb8;"></div>
+                  <span class="legend-text">Hurricanes</span>
+                </div>
+                <div id="barchart-legend-row">
+                  <div class="legend-box" style="background-color: #4daf4a;"></div>
+                  <span class="legend-text">Major Hurricanes</span>
+                </div>
             </div>
           </div>
         </div>
@@ -322,7 +391,9 @@
       </p>
     </div>
     <div id="part2-main">
-      <svg id="linechart" height="300" width="800" style="margin-top:0px" ></svg>
+      <div id="linechart-container">
+        <svg id="linechart" style="margin-top:0px" ></svg>
+      </div>
     </div>
     <div id="part2-text3">
       <p>
@@ -394,21 +465,11 @@
       var boundaries = topojson.feature(world, world.objects.croppedmap);
 
       var projection = d3.geoMercator()
-        .fitSize([mapWidth, mapHeight], boundaries);
+        .fitWidth(mapWidth, boundaries)
+        .center([-56.45, 12])
+        .translate([mapWidth / 2, mapHeight / 2])
 
       var path = d3.geoPath().projection(projection);
-
-      // rescaling projection to better fit width of container
-      const bounds = path.bounds(boundaries);
-      const boundingBoxHeight = bounds[1][1] - bounds[0][1];
-      const scaleFactor = mapWidth / (bounds[1][0] - bounds[0][0]);
-
-      const newScale = projection.scale() * scaleFactor;
-      const newHeight = boundingBoxHeight * scaleFactor;
-  
-      projection.scale(newScale)
-
-      map.attr("transform", `translate(${330}, ${100})`);
 
       // loading in sea surface temp anomaly data
       geoData = await d3.json('ssta_aggregate.geojson');
@@ -421,7 +482,8 @@
       const hexbin = d3.hexbin()
           .x(d => d.position[0])
           .y(d => d.position[1])
-          .radius(32)
+          // .radius(31.5)
+          .radius(mapWidth / 33.6)
           .size([mapWidth, mapHeight]);
 
       const bins = hexbin(filteredData);
@@ -500,10 +562,16 @@
       const hurricane_frequency = await d3.csv("hf_decade_avg.csv", d3.autoType);
 
       // Set up the bar chart 
+      const barContainer = d3.select("#barchart_div");
       const bar_svg = d3.select("svg#barchart");
+      const barLegend = d3.select("#barchart-legend");
+
+      bar_svg.attr("width", barContainer.node().offsetWidth - barLegend.node().offsetWidth);
+      bar_svg.attr("height", barContainer.node().offsetHeight);
+
       const b_width = bar_svg.attr("width");
       const b_height = bar_svg.attr("height");
-      const margin = {top: 30, right: 150, bottom: 50, left: 50};
+      const margin = {top: 30, right: 10, bottom: 50, left: 50};
       const b_chartWidth = b_width - margin.left - margin.right;
       const b_chartHeight = b_height - margin.top - margin.bottom;
       let annotations = bar_svg.append("g").attr("id","annotations");
@@ -567,51 +635,52 @@
       //add title
       annotations.append('text')
                 .text('Average Number of Atlantic Basin Storms Per Year By Decade')
-                .attr('x',  (b_chartWidth-margin.right)/2)
-                .attr('y', margin.top)
+                .attr('x',  (barContainer.node().offsetWidth)/2)
+                .attr('y', margin.top - 5)
+                .style('text-anchor', 'middle')
                 .style("font-size", "15px")
                 .style('font-weight', 'bold')
 
       //add legend
-      annotations.append('rect')
-                .attr('x', b_chartWidth+margin.right*(2/3)-25)
-                .attr('y', b_chartHeight/3-20)
-                .attr('width', 20)
-                .attr('height', 20)
-                .attr('stroke', colorScale('Tropical Storms'))
-                .attr('fill', colorScale('Tropical Storms'));
-      annotations.append('text')
-                .text('Tropical Storms')
-                .attr('x',  b_chartWidth+margin.right*(2/3))
-                .attr('y', b_chartHeight/3)
-                .style("font-size", "12px")
-                .style('font-weight', 'bold');
-      annotations.append('rect')
-                .attr('x', b_chartWidth+margin.right*(2/3)-25)
-                .attr('y', b_chartHeight/3-20+30)
-                .attr('width', 20)
-                .attr('height', 20)
-                .attr('stroke', colorScale('Hurricanes'))
-                .attr('fill', colorScale('Hurricanes'));
-      annotations.append('text')
-                .text('Hurricanes')
-                .attr('x',  b_chartWidth+margin.right*(2/3))
-                .attr('y', b_chartHeight/3+30)
-                .style("font-size", "12px")
-                .style('font-weight', 'bold');
-      annotations.append('rect')
-                .attr('x', b_chartWidth+margin.right*(2/3)-25)
-                .attr('y', b_chartHeight/3-20+60)
-                .attr('width', 20)
-                .attr('height', 20)
-                .attr('stroke', colorScale('Major Hurricanes'))
-                .attr('fill', colorScale('Major Hurricanes'));
-      annotations.append('text')
-                .text('Major Hurricanes')
-                .attr('x',  b_chartWidth+margin.right*(2/3))
-                .attr('y', b_chartHeight/3+60)
-                .style("font-size", "12px")
-                .style('font-weight', 'bold');
+      // annotations.append('rect')
+      //           .attr('x', b_chartWidth+margin.right*(2/3)-35)
+      //           .attr('y', b_chartHeight/3-15)
+      //           .attr('width', 20)
+      //           .attr('height', 20)
+      //           .attr('stroke', colorScale('Tropical Storms'))
+      //           .attr('fill', colorScale('Tropical Storms'));
+      // annotations.append('text')
+      //           .text('Tropical Storms')
+      //           .attr('x',  b_chartWidth+margin.right*(2/3)-10)
+      //           .attr('y', b_chartHeight/3)
+      //           .style("font-size", "12px")
+      //           .style('font-weight', 'bold');
+      // annotations.append('rect')
+      //           .attr('x', b_chartWidth+margin.right*(2/3)-35)
+      //           .attr('y', b_chartHeight/3-15+30)
+      //           .attr('width', 20)
+      //           .attr('height', 20)
+      //           .attr('stroke', colorScale('Hurricanes'))
+      //           .attr('fill', colorScale('Hurricanes'));
+      // annotations.append('text')
+      //           .text('Hurricanes')
+      //           .attr('x',  b_chartWidth+margin.right*(2/3)-10)
+      //           .attr('y', b_chartHeight/3+30)
+      //           .style("font-size", "12px")
+      //           .style('font-weight', 'bold');
+      // annotations.append('rect')
+      //           .attr('x', b_chartWidth+margin.right*(2/3)-35)
+      //           .attr('y', b_chartHeight/3-15+60)
+      //           .attr('width', 20)
+      //           .attr('height', 20)
+      //           .attr('stroke', colorScale('Major Hurricanes'))
+      //           .attr('fill', colorScale('Major Hurricanes'));
+      // annotations.append('text')
+      //           .text('Major Hurricanes')
+      //           .attr('x',  b_chartWidth+margin.right*(2/3)-10)
+      //           .attr('y', b_chartHeight/3+60)
+      //           .style("font-size", "12px")
+      //           .style('font-weight', 'bold');
 
       //list of all my annotations i want to display
       let textpopups = {
@@ -633,7 +702,7 @@
       for(t in textpopups){
         d3.select('#part1-right').append('div')
                                   .attr('id', `popup${t}`)
-                                  .style('margin-top', ((prev_t == 0) ? (t-prev_t)*100 + introOffset-600-50 : (t-prev_t)*100-50) )
+                                  .style('margin-top', ((prev_t == 0) ? (t-prev_t)*100 + introOffset-600-55 : (t-prev_t)*100-70) )
                                   .attr('class', ((t == 1) ? 'popup' : 'popup hidden'))
         // above creates margin based on distance from prev popup, also removing 50 pixels for how long the prev text probably was
         current_popup = d3.select(`#popup${t}`)
@@ -718,8 +787,6 @@
 
         let current_year = years[bar_number]
 
-        console.log(bar_number)
-
         let current_bars = chartArea.selectAll(`#year${current_year}`)
         current_bars.attr('class', 'scrolled')
 
@@ -729,10 +796,14 @@
       // PART 2
       const oni_data = await d3.csv("oni.csv", d3.autoType);
       const hurricane_freq_yearly = await d3.csv("hurricane_frequency_cut.csv", d3.autoType);
-      console.log(hurricane_freq_yearly)
 
       //set up bars
       const linechart = d3.select('svg#linechart')
+      const linechartContainer = d3.select("#linechart-container");
+
+      linechart.attr("width", linechartContainer.node().offsetWidth);
+      linechart.attr("height", linechartContainer.node().offsetHeight);
+
       const l_width = linechart.attr("width");
       const l_height = linechart.attr("height");
       const l_margin = {top: 40, right: 150, bottom: 50, left: 50};
@@ -756,7 +827,7 @@
       //add title
       l_annotations.append('text')
                 .html('La Ni&#241a and El Ni&#241o Intensity vs. Atlantic Basin Storm Frequency')
-                .attr('x',  (l_chartWidth/2-margin.right))
+                .attr('x',  (l_chartWidth/2-l_margin.right))
                 .attr('y', l_margin.top-20)
                 .style("font-size", "15px")
                 // .style("text-anchor", "middle")
@@ -769,7 +840,7 @@
       l_annotations.append("text")
                     .attr("class", "ylabel-left")
                     .attr("y", 15)
-                    .attr("x", -(l_chartHeight+margin.top)/2) //also hardcoded -20 to center
+                    .attr("x", -(l_chartHeight+l_margin.top)/2) //also hardcoded -20 to center
                     .attr("transform", "rotate(-90)")
                     .style("text-anchor", "middle")
                     .text("Intensity")
@@ -822,8 +893,8 @@
       
       l_annotations.append("text")
                     .attr("class", "ylabel-right")
-                    .attr("y", l_chartWidth+margin.right-55)
-                    .attr("x", -(l_chartHeight+margin.top)/2) 
+                    .attr("y", l_chartWidth+l_margin.right-55)
+                    .attr("x", -(l_chartHeight+l_margin.top)/2) 
                     .text("Atlantic Basin Storm Totals")
                     .attr("transform", "rotate(-90)")
                     .style("text-anchor", "middle")
@@ -871,8 +942,8 @@
 
 
       //add legend
-      let modificationx = 10;
-      let modificationy = l_margin.top-10;
+      let modificationx = -40;
+      let modificationy = l_margin.top - 30;
       l_annotations.append('rect')
                 .attr('x', 100+modificationx)
                 .attr('y', 0+modificationy)
@@ -900,8 +971,8 @@
                 .style("font-size", "12px")
                 .style('font-weight', 'bold');
       l_annotations.append('line')
-                  .attr("x1", 95+modificationx)
-                  .attr("x2", 120+modificationx)
+                  .attr("x1", 100+modificationx)
+                  .attr("x2", 115 +modificationx)
                   .attr("y1", 35+modificationy)
                   .attr("y2", 35+modificationy)
                   .attr("stroke", 'black')
