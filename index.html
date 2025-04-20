@@ -172,7 +172,7 @@
           height: 100%;
         }
         
-        #barchart_div{
+        #barchart_div {
           /* width: 50%; */
           text-align: center;
           width: 100%;
@@ -263,7 +263,7 @@
           width: 50%;
         }
 
-        #part2-main{
+        #part2-main {
           display:flex;
           flex-direction:row;
           justify-content: center;
@@ -304,6 +304,61 @@
 
           #linechart-container {
             width: 80%;
+          }
+        }
+
+        @media (max-width: 760px) {
+          #legend-container {
+            height: 6%;
+          }
+
+          #map {
+            height: 60%;
+          }
+
+          #barchart_div {
+            height: 34%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          #barchart {
+            height: calc(100% - 30px);
+          }
+
+          #barchart-legend {
+            width: 100%;
+            height: 15px;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            transform: translateY(0px);
+            margin-bottom: 5px;
+            gap: 1.5em;
+          }
+
+          #barchart-legend-row {
+            width: auto;
+          }
+
+          .popup {
+            padding: 0.5em 1em;
+          }
+
+          .popup p {
+            font-size: 1em;
+          }
+
+          #intro-headers {
+            width: 90%;
+          }
+
+          #part2, #part2-text, #part2-text2, #part2-text3, #end {
+            width: 80%;
+          }
+
+          #linechart-container {
+            width: 95%;
           }
         }
     </style>
@@ -426,13 +481,13 @@
 
     mapSVG.attr("width", mapContainer.node().offsetWidth);
     mapSVG.attr("height", mapContainer.node().offsetHeight);
-    const mapWidth = mapSVG.attr("width");
-    const mapHeight = mapSVG.attr("height");
-    const map = mapSVG.append("g");
+    let mapWidth = mapSVG.attr("width");
+    let mapHeight = mapSVG.attr("height");
+    let map = mapSVG.append("g");
 
     // setting up legend
-    const legendSVG = d3.select("#legend");
-    const legendContainer = d3.select("#legend-container");
+    let legendSVG = d3.select("#legend");
+    let legendContainer = d3.select("#legend-container");
 
     // const stickyBg = d3.select("#part1-left");
 
@@ -465,8 +520,17 @@
       var boundaries = topojson.feature(world, world.objects.croppedmap);
 
       var projection = d3.geoMercator()
-        .fitWidth(mapWidth, boundaries)
-        .center([-56.45, 12])
+        // .fitWidth(mapWidth, boundaries)
+       
+      let mapRatio = mapWidth / mapHeight;
+
+      if (mapRatio > 1.25) {
+        projection.fitWidth(mapWidth, boundaries);
+      } else {
+        projection.fitHeight(mapHeight, boundaries);
+      }
+
+      projection.center([-56.45, 12])
         .translate([mapWidth / 2, mapHeight / 2])
 
       var path = d3.geoPath().projection(projection);
@@ -566,8 +630,11 @@
       const bar_svg = d3.select("svg#barchart");
       const barLegend = d3.select("#barchart-legend");
 
-      bar_svg.attr("width", barContainer.node().offsetWidth - barLegend.node().offsetWidth);
-      bar_svg.attr("height", barContainer.node().offsetHeight);
+      let barLegendWidthOffset = barContainer.node().offsetWidth > 760 ? barLegend.node().offsetWidth : 0;
+      let barLegendHeightOffset = barContainer.node().offsetWidth > 760 ? 0 : 30;
+
+      bar_svg.attr("width", barContainer.node().offsetWidth - barLegendWidthOffset);
+      bar_svg.attr("height", barContainer.node().offsetHeight - barLegendHeightOffset);
 
       const b_width = bar_svg.attr("width");
       const b_height = bar_svg.attr("height");
@@ -603,7 +670,7 @@
                 .call(bottomAxis)
                 .selectAll("text")
                 .attr("y", 12)
-                .attr("x", 0)
+                .attr("x", 0);
                 // .attr("transform", "rotate(-45)")
                 // .style("text-anchor", "center");
 
@@ -640,47 +707,6 @@
                 .style('text-anchor', 'middle')
                 .style("font-size", "15px")
                 .style('font-weight', 'bold')
-
-      //add legend
-      // annotations.append('rect')
-      //           .attr('x', b_chartWidth+margin.right*(2/3)-35)
-      //           .attr('y', b_chartHeight/3-15)
-      //           .attr('width', 20)
-      //           .attr('height', 20)
-      //           .attr('stroke', colorScale('Tropical Storms'))
-      //           .attr('fill', colorScale('Tropical Storms'));
-      // annotations.append('text')
-      //           .text('Tropical Storms')
-      //           .attr('x',  b_chartWidth+margin.right*(2/3)-10)
-      //           .attr('y', b_chartHeight/3)
-      //           .style("font-size", "12px")
-      //           .style('font-weight', 'bold');
-      // annotations.append('rect')
-      //           .attr('x', b_chartWidth+margin.right*(2/3)-35)
-      //           .attr('y', b_chartHeight/3-15+30)
-      //           .attr('width', 20)
-      //           .attr('height', 20)
-      //           .attr('stroke', colorScale('Hurricanes'))
-      //           .attr('fill', colorScale('Hurricanes'));
-      // annotations.append('text')
-      //           .text('Hurricanes')
-      //           .attr('x',  b_chartWidth+margin.right*(2/3)-10)
-      //           .attr('y', b_chartHeight/3+30)
-      //           .style("font-size", "12px")
-      //           .style('font-weight', 'bold');
-      // annotations.append('rect')
-      //           .attr('x', b_chartWidth+margin.right*(2/3)-35)
-      //           .attr('y', b_chartHeight/3-15+60)
-      //           .attr('width', 20)
-      //           .attr('height', 20)
-      //           .attr('stroke', colorScale('Major Hurricanes'))
-      //           .attr('fill', colorScale('Major Hurricanes'));
-      // annotations.append('text')
-      //           .text('Major Hurricanes')
-      //           .attr('x',  b_chartWidth+margin.right*(2/3)-10)
-      //           .attr('y', b_chartHeight/3+60)
-      //           .style("font-size", "12px")
-      //           .style('font-weight', 'bold');
 
       //list of all my annotations i want to display
       let textpopups = {
@@ -984,7 +1010,37 @@
                 .style("font-size", "12px")
                 .style('font-weight', 'bold');      
     }
-
     requestData();
+
+    let resizeTimer;
+
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        // resize map and map legend
+        legendWidth = legendContainer.node().offsetWidth;
+        legendHeight = legendContainer.node().offsetHeight;
+        mapWidth = mapContainer.node().offsetWidth;
+        mapHeight = mapContainer.node().offsetHeight;
+        mapSVG.selectAll('*').remove()
+        map = mapSVG.append("g");
+
+        legendSVG.selectAll('*').remove();
+        defs = legendSVG.append("defs");
+        linearGradient = defs.append("linearGradient")
+          .attr("id", "legendGradient")
+          .attr("x1", "100%")
+          .attr("y1", "0%")
+          .attr("x2", "0%")
+          .attr("y2", "0%");
+        requestMap();
+
+        // resize bar chart
+        d3.select("svg#barchart").selectAll("*").remove();
+        d3.select('#part1-right').selectAll('*').remove();
+        d3.select('svg#linechart').selectAll("*").remove();
+        requestData();
+      }, 250); 
+    });
   </script>
 </html>
