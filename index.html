@@ -542,12 +542,13 @@
         d.position = projection( [d.geometry.coordinates[0], d.geometry.coordinates[1]] );
       });
 
+      let radius = Math.max(17.5, mapWidth / 33.6)
+
       // creating hex grid
       const hexbin = d3.hexbin()
           .x(d => d.position[0])
           .y(d => d.position[1])
-          // .radius(31.5)
-          .radius(mapWidth / 33.6)
+          .radius(radius)
           .size([mapWidth, mapHeight]);
 
       const bins = hexbin(filteredData);
