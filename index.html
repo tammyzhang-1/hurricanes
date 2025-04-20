@@ -1,9 +1,13 @@
 <html>
   <head>
-    <title>INFO 4310 - Final Project</title>
+    <title>The 2024 Hurricane Season</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://github.com/1wheel/graph-scroll/blob/gh-pages/graph-scroll.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
+
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1">
+
     <script src="https://d3js.org/topojson.v3.min.js"></script>
     <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
 
@@ -13,6 +17,7 @@
             margin: 0;
             padding: 0;
             width: 100%;
+            max-width: 100%;
             height: auto;
         }
 
@@ -137,7 +142,12 @@
           justify-content: space-between;
           padding: 0 2px 0 5px;
           font-size: 0.85em;
+          gap: 0.5em;
           color: gray;
+        }
+
+        #mid-value {
+          text-align: center;
         }
       
         /* CSS FOR SCROLLED COMPONENTS */
@@ -189,7 +199,13 @@
           gap: 0.5em;
         }
 
-        #barchart-legend-row {
+        #static-barchart-legend {
+          display: flex;
+          justify-content: center;
+          gap: 1.5em;
+        }
+
+        .barchart-legend-row {
           display: flex;
           align-items: center;
           width: 100%;
@@ -199,7 +215,12 @@
         .legend-box {
           width: 20px;
           height: 20px;
+        }
 
+        .legend-line {
+          width: 20px;
+          height: 3px;
+          background-color: black;
         }
 
         .legend-text {
@@ -212,7 +233,7 @@
           margin-top: 10px;
         }
 
-        #part2-text, #part2-text2{
+        #part2-text, #part2-text2, #static-barchart-title {
           width: 50%;
           margin: 0 auto;
           /* text-align: center; */
@@ -265,14 +286,24 @@
 
         #part2-main {
           display:flex;
-          flex-direction:row;
+          flex-direction: column;
           justify-content: center;
           align-items: center;
-          padding-top: 2em;
+          padding-top: 1em;
           padding-bottom: 2em;
         }
 
+        #static-barchart-title {
+          font-size: 1.05em;
+          font-weight: bold;
+          margin: 0 0 0.75em 0;
+          padding: 0;
+          text-align: center;
+        }
+
         #linechart-container {
+          box-sizing: border-box;
+          max-width: 100%;
           width: 60%;
           height: 300px;
           padding-left: 3em;
@@ -298,7 +329,7 @@
             width: 80%;
           }
 
-          #part2, #part2-text, #part2-text2, #part2-text3, #end {
+          #part2, #part2-text, #part2-text2, #static-barchart-titlem, #part2-text3, #end {
             width: 70%;
           }
 
@@ -326,7 +357,7 @@
             height: calc(100% - 30px);
           }
 
-          #barchart-legend {
+          #barchart-legend, #static-barchart-legend {
             width: 100%;
             height: 15px;
             display: flex;
@@ -337,12 +368,21 @@
             gap: 1.5em;
           }
 
-          #barchart-legend-row {
+          .barchart-legend-row {
             width: auto;
           }
 
-          .popup {
-            padding: 0.5em 1em;
+          #intro-headers h1 {
+            font-size: 2em;
+          }
+
+          #intro-headers h2 {
+            font-size: 1.15em;
+            font-weight: normal;
+          }
+
+          .popup h2, h2 {
+            font-size: 1.25em;
           }
 
           .popup p {
@@ -353,12 +393,66 @@
             width: 90%;
           }
 
-          #part2, #part2-text, #part2-text2, #part2-text3, #end {
+          #part2, #part2-text, #part2-text2, #static-barchart-title, #part2-text3, #end {
             width: 80%;
           }
 
           #linechart-container {
-            width: 95%;
+            width: 100%;
+            padding-left: 1em;
+          }
+
+          #linechart {
+            max-width: 100%;
+          }
+        }
+
+        @media (max-width: 580px) {
+          .popup {
+            padding: 0.5em 1em;
+          }
+        }
+
+        @media (max-width: 455px) {
+          .popup h2, h2 {
+            font-size: 1.15em;
+          }
+        }
+
+        @media (max-width: 437px) {
+          #legend-container {
+            padding-bottom: 0.25em;
+          }
+/* 
+          #legend-labels {
+            font-size: 0.75em;
+          } */
+
+          #barchart-legend {
+            gap: 0.5em;
+          }
+
+          .legend-text {
+            font-size: 0.75em;
+          }
+
+          .legend-box {
+            width: 15px;
+            height: 15px;
+          }
+
+          .barchart-legend-row {
+            gap: 0.25em;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .popup h2, h2 {
+            font-size: 1em;
+          }
+
+          .popup p, p {
+            font-size: 0.9em;
           }
         }
     </style>
@@ -409,15 +503,15 @@
               <svg id="barchart" style="margin-top:0px" >
               </svg>
               <div id="barchart-legend">
-                <div id="barchart-legend-row">
+                <div class="barchart-legend-row">
                   <div class="legend-box" style="background-color: #e41a1c;"></div>
                   <span class="legend-text">Tropical Storms</span>
                 </div>
-                <div id="barchart-legend-row">
+                <div class="barchart-legend-row">
                   <div class="legend-box" style="background-color: #377eb8;"></div>
                   <span class="legend-text">Hurricanes</span>
                 </div>
-                <div id="barchart-legend-row">
+                <div class="barchart-legend-row">
                   <div class="legend-box" style="background-color: #4daf4a;"></div>
                   <span class="legend-text">Major Hurricanes</span>
                 </div>
@@ -431,7 +525,7 @@
     </div> <!--close everything_belowintro-->
     <div id="part2-text">
       <h2>What's causing record ocean temperatures?</h2>
-      <p>There's a number of different factors that scientists have speculated are driving these warmer waters - including El Ni&#241o (a recurring climate pattern often associated with warmer conditions in many regions), new international laws reducing shipping pollution inadvertently causing less sunlight to be blocked from the Earth, and the 2022 Tonga volcano eruption adding tens of millions of tons of water vapor into the atmosphere.</p>
+      <p>There's a number of different factors that scientists have speculated are driving these warmer waters&mdash;including El Ni&#241o (a recurring climate pattern often associated with warmer conditions in many regions), new international laws reducing shipping pollution inadvertently causing less sunlight to be blocked from the Earth, and the 2022 Tonga volcano eruption adding tens of millions of tons of water vapor into the atmosphere.</p>
       <p>However, experts agree that the primary factor remains climate change, with the oceans being estimated to have absorbed about 90% of human-driven warming in the last 150 years. Dr. Zeke Hausfather, a climate scientist at Berkeley Earth, expressed: "The level of warmth we are seeing today is only possible because of the warming over the past 150 years due to human activity."</p>
     </div>
     <div id="part2-text2">
@@ -446,6 +540,21 @@
       </p>
     </div>
     <div id="part2-main">
+      <h3 id="static-barchart-title">La Ni&#241a and El Ni&#241o Intensity vs. Atlantic Basin Storm Frequency</h3>
+      <div id="static-barchart-legend">
+        <div class="barchart-legend-row">
+          <div class="legend-box" style="background-color: #f88684;"></div>
+          <span class="legend-text">La Ni&#241a</span>
+        </div>
+        <div class="barchart-legend-row">
+          <div class="legend-box" style="background-color: rgb(121, 185, 207);"></div>
+          <span class="legend-text">El Ni&#241o</span>
+        </div>
+        <div class="barchart-legend-row">
+          <div class="legend-line" style="background-color: black;"></div>
+          <span class="legend-text">Storm Count</span>
+        </div>
+      </div>
       <div id="linechart-container">
         <svg id="linechart" style="margin-top:0px" ></svg>
       </div>
@@ -457,7 +566,7 @@
       <p>
         Looking ahead to 2024's approaching hurricane season, it's important to keep in mind that forecasts made this early in the year aren't always the most accurate. However, it's reasonable to expect that this season is more than likely to be one of the most active on record.
       </p>
-      <p>Dr. Gregory Johnson, an oceanographer at the National Oceanic and Atmospheric Administration, noted: "The ocean has been doing us a big service by delaying global warming considerably - but it comes at a cost."</p>
+      <p>Dr. Gregory Johnson, an oceanographer at the National Oceanic and Atmospheric Administration, noted: "The ocean has been doing us a big service by delaying global warming considerably&mdash;but it comes at a cost."</p>
     </div>
     <div id="end">
       Sources: 
@@ -519,6 +628,8 @@
 
       var boundaries = topojson.feature(world, world.objects.croppedmap);
 
+   
+
       var projection = d3.geoMercator()
         // .fitWidth(mapWidth, boundaries)
        
@@ -542,7 +653,7 @@
         d.position = projection( [d.geometry.coordinates[0], d.geometry.coordinates[1]] );
       });
 
-      let radius = Math.max(17.5, mapWidth / 33.6)
+      let radius = Math.max(22, mapWidth / 33.6)
 
       // creating hex grid
       const hexbin = d3.hexbin()
@@ -674,6 +785,14 @@
                 .attr("x", 0);
                 // .attr("transform", "rotate(-45)")
                 // .style("text-anchor", "center");
+      
+      if (b_width < 530){
+        annotations.selectAll(".x.axis text")
+                  .attr("transform", "rotate(-90)")
+                  .attr("x", -19)
+                  .attr("y", -4)
+                  // .style("text-anchor", "end");
+      } 
 
       let subgroups = hurricane_frequency.columns.slice(1);
       let colorScale = d3.scaleOrdinal()
@@ -700,13 +819,15 @@
               .attr("width", yearScale.bandwidth())
               .attr("id", d=>`year${d.data.Year}`)
 
+      let barChartTitleSize = b_width >  430 ? "0.9em" : "0.75em";
+
       //add title
       annotations.append('text')
-                .text('Average Number of Atlantic Basin Storms Per Year By Decade')
+                .text('Average Annual Number of Atlantic Basin Storms By Decade')
                 .attr('x',  (barContainer.node().offsetWidth)/2)
-                .attr('y', margin.top - 5)
+                .attr('y', margin.top - 7)
                 .style('text-anchor', 'middle')
-                .style("font-size", "15px")
+                .style("font-size", barChartTitleSize)
                 .style('font-weight', 'bold')
 
       //list of all my annotations i want to display
@@ -718,11 +839,11 @@
         4:['', 
           'Sea surface temperatures in this region are known to affect the hurricane season, with warmer waters providing more energy that serve as the driving force behind Atlantic storms.'], 
         6:['', 
-          'For example, the 1910s, a decade with cooler temperatures than average, saw a decrease in hurricane frequency - although 4 of the top 15 most deadly mainland U.S tropical cyclones are still from this decade.'], 
+          'For example, the 1910s, a decade with cooler temperatures than average, saw a decrease in hurricane frequency\u2014although 4 of the top 15 most deadly mainland U.S tropical cyclones are still from this decade.'], 
         12:['In recent decades, the change in sea surface temperatures has been dramatic.', 
-          'Although temperatures have been gradually increasing over the course of the past century, the increase in average ocean temperatures after the 1980s has been of particular concern to climate scientists due to their extremely rapid rate of change. Accordingly, these recent decades have seen growing numbers of tropical storm events, with the 2020s already having the highest average yearly rate of Atlantic basin storms of any decade since at least 1850.' ],
+          'Accordingly, the decades after the 1980s have seen growing numbers of tropical storm events, with the 2020s already seeing the highest average yearly rate of Atlantic basin storms since at least 1850.' ],
         14:["In 2024, the Main Development Region's surface temperatures are already the warmest they've been in recent history.", 
-            'Benjamin Kirtman, a professor of atmospheric sciences at the University of Miami, described these abnormally warm conditions as "unprecedented" and "alarming" - "an out-of-bounds anomaly."']
+            'Benjamin Kirtman, a professor of atmospheric sciences at the University of Miami, described these abnormally warm conditions as "unprecedented" and "alarming", "an out-of-bounds anomaly."']
       }
 
       let prev_t = 0
@@ -833,7 +954,7 @@
 
       const l_width = linechart.attr("width");
       const l_height = linechart.attr("height");
-      const l_margin = {top: 40, right: 150, bottom: 50, left: 50};
+      const l_margin = {top: 20, right: 150, bottom: 50, left: 50};
       const l_chartWidth = l_width - l_margin.left - l_margin.right;
       const l_chartHeight = l_height - l_margin.top - l_margin.bottom;
       let l_annotations = linechart.append("g").attr("id","annotations");
@@ -849,16 +970,6 @@
       let l_leftGridlines = d3.axisLeft(valueScale)
                             .tickSize(-l_chartWidth-10)
                             .tickFormat("").ticks(7);
-
-
-      //add title
-      l_annotations.append('text')
-                .html('La Ni&#241a and El Ni&#241o Intensity vs. Atlantic Basin Storm Frequency')
-                .attr('x',  (l_chartWidth/2-l_margin.right))
-                .attr('y', l_margin.top-20)
-                .style("font-size", "15px")
-                // .style("text-anchor", "middle")
-                .style('font-weight', 'bold')
 
       l_annotations.append("g")
                 .attr("class", "yaxis-left")
@@ -884,8 +995,32 @@
                 .attr("x", -10)
                 .attr("transform", "rotate(-45)")
                 .style("text-anchor", "end");
-
       
+      if (l_width < 700) {
+        l_annotations.selectAll(".x.axis text")
+          .attr("transform", "rotate(-90)")
+          .attr("x", -10)
+          .attr("y", -3)
+      } 
+
+      if (l_width < 380) {
+        l_annotations.selectAll(".x.axis text")
+          .each(function(_, i) {
+            if (i % 4 !== 0) {
+              d3.select(this).remove();
+            }
+          });
+      }
+
+      else if (l_width < 570) {
+        l_annotations.selectAll(".x.axis text")
+          .each(function(_, i) {
+            if (i % 2 !== 0) {
+              d3.select(this).remove();
+            }
+          });
+      }
+    
       l_chartArea.append("line")
              .attr("class","zeroline")
              .attr("x1", -10)
@@ -922,7 +1057,7 @@
                     .attr("class", "ylabel-right")
                     .attr("y", l_chartWidth+l_margin.right-55)
                     .attr("x", -(l_chartHeight+l_margin.top)/2) 
-                    .text("Atlantic Basin Storm Totals")
+                    .text("Atlantic Basin Storm Count")
                     .attr("transform", "rotate(-90)")
                     .style("text-anchor", "middle")
                     .style('font-size', '12px'); 
@@ -935,7 +1070,7 @@
                   .attr("x2", l_yearScale(d.Season))
                   .attr("y1", valueScale(0))
                   .attr("y2", valueScale(d.Value))
-                  .attr("stroke", ((d.Value>0) ? 'red' : 'blue'))
+                  .attr("stroke", ((d.Value>0) ? '#f88684' : 'lightblue'))
                   .attr('stroke-width', '5px');
       })
 
@@ -966,50 +1101,6 @@
            .attr("stroke", "black")
            .attr("stroke-width", 3)
            .attr("d", lineGen);
-
-
-      //add legend
-      let modificationx = -40;
-      let modificationy = l_margin.top - 30;
-      l_annotations.append('rect')
-                .attr('x', 100+modificationx)
-                .attr('y', 0+modificationy)
-                .attr('width', 10)
-                .attr('height', 10)
-                .attr('stroke', 'red')
-                .attr('fill', 'red');
-      l_annotations.append('text')
-                .html(`La Ni&#241a`)
-                .attr('x',  123+modificationx)
-                .attr('y', 10+modificationy)
-                .style("font-size", "12px")
-                .style('font-weight', 'bold');
-      l_annotations.append('rect')
-                .attr('x', 100+modificationx)
-                .attr('y', 15+modificationy)
-                .attr('width', 10)
-                .attr('height', 10)
-                .attr('stroke', 'blue')
-                .attr('fill', 'blue');
-      l_annotations.append('text')
-                .html(`El Ni&#241o`)
-                .attr('x',  123+modificationx)
-                .attr('y', 25+modificationy)
-                .style("font-size", "12px")
-                .style('font-weight', 'bold');
-      l_annotations.append('line')
-                  .attr("x1", 100+modificationx)
-                  .attr("x2", 115 +modificationx)
-                  .attr("y1", 35+modificationy)
-                  .attr("y2", 35+modificationy)
-                  .attr("stroke", 'black')
-                  .attr('stroke-width', '3px');
-      l_annotations.append('text')
-                .html(`Storm Count`)
-                .attr('x',  123+modificationx)
-                .attr('y', 40+modificationy)
-                .style("font-size", "12px")
-                .style('font-weight', 'bold');      
     }
     requestData();
 
